@@ -1,0 +1,339 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import { SITE_TITLE } from '../../consts';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={'扫雷 · ' + SITE_TITLE} description="经典扫雷游戏" />
+		<style>
+			.game-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1em; }
+			.game-header {
+				display: flex; justify-content: space-between; align-items: center;
+				width: 100%; max-width: 500px; flex-wrap: wrap; gap: 0.5em;
+			}
+			.stats { display: flex; gap: 1.5em; font-size: 0.9rem; color: rgb(var(--gray)); }
+			.stats span { font-weight: 600; color: var(--accent); font-size: 1.2rem; }
+			.difficulty { display: flex; gap: 0.4em; }
+			.diff-btn {
+				padding: 0.3em 0.8em; border-radius: 6px; border: 1px solid rgb(var(--gray-light));
+				font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
+				background: transparent; font-family: inherit; color: rgb(var(--gray));
+			}
+			.diff-btn:hover { border-color: var(--accent); color: var(--accent); }
+			.diff-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+			.game-btn {
+				padding: 0.4em 1em; border-radius: 8px; border: none;
+				font-size: 0.8rem; font-weight: 600; cursor: pointer;
+				transition: all 0.2s; font-family: inherit;
+			}
+			.btn-start { background: var(--accent); color: #fff; }
+			.btn-start:hover { background: var(--accent-dark); }
+			.canvas-wrapper {
+				position: relative; border-radius: 12px; overflow: hidden;
+				box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 2px solid rgb(var(--gray-light));
+			}
+			canvas { display: block; background: #0f172a; }
+			.game-overlay {
+				position: absolute; inset: 0; display: flex; flex-direction: column;
+				align-items: center; justify-content: center;
+				background: rgba(15,23,42,0.85); color: #fff;
+				opacity: 0; pointer-events: none; transition: opacity 0.3s;
+			}
+			.game-overlay.show { opacity: 1; pointer-events: auto; }
+			.game-overlay h2 { color: #fff; font-size: 2rem; margin: 0 0 0.3em 0; }
+			.game-overlay p { margin: 0; opacity: 0.7; font-size: 1.1rem; }
+			.controls-hint { font-size: 0.8rem; color: rgb(var(--gray)); text-align: center; }
+			.controls-hint kbd {
+				padding: 0.15em 0.4em; border-radius: 4px;
+				background: rgb(var(--gray-light)); font-size: 0.8rem; font-family: inherit;
+			}
+			@media (max-width: 720px) { canvas { width: 100%; height: auto; } }
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="game-wrapper">
+				<h2 style="margin:0;font-size:1.5rem;">扫雷</h2>
+				<div class="game-header">
+					<div class="stats">
+						剩余 <span id="mineCount">10</span>
+					</div>
+					<div class="difficulty" id="diffGroup">
+						<button class="diff-btn active" data-level="easy">初级</button>
+						<button class="diff-btn" data-level="medium">中级</button>
+						<button class="diff-btn" data-level="hard">高级</button>
+					</div>
+					<button class="game-btn btn-start" id="resetBtn">重新开始</button>
+				</div>
+				<div class="canvas-wrapper">
+					<canvas id="board" width="250" height="250"></canvas>
+					<div class="game-overlay" id="gameOverlay">
+						<h2 id="resultTitle">游戏结束</h2>
+						<p id="resultMsg">你赢了！</p>
+					</div>
+				</div>
+				<div class="controls-hint">
+					左键点击翻开 · 右键标旗 <kbd>F</kbd> 标旗/取消
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			(function() {
+				const canvas = document.getElementById('board');
+				const ctx = canvas.getContext('2d');
+				const mineCountEl = document.getElementById('mineCount');
+				const overlay = document.getElementById('gameOverlay');
+				const resultTitle = document.getElementById('resultTitle');
+				const resultMsg = document.getElementById('resultMsg');
+				const resetBtn = document.getElementById('resetBtn');
+				const diffBtns = document.querySelectorAll('.diff-btn');
+
+				const DIFFICULTIES = {
+					easy:   { rows: 9,  cols: 9,  mines: 10, cellSize: 28 },
+					medium: { rows: 12, cols: 12, mines: 30, cellSize: 28 },
+					hard:   { rows: 16, cols: 16, mines: 60, cellSize: 28 },
+				};
+
+				let diff = 'easy';
+				let grid, revealed, flagged;
+				let gameOver = false, gameStarted = false, gameWon = false;
+
+				function getConfig() {
+					const c = DIFFICULTIES[diff];
+					canvas.width = c.cols * c.cellSize;
+					canvas.height = c.rows * c.cellSize;
+					return c;
+				}
+
+				function initGrid() {
+					const cfg = getConfig();
+					grid = Array.from({ length: cfg.rows }, () => Array(cfg.cols).fill(0));
+					revealed = Array.from({ length: cfg.rows }, () => Array(cfg.cols).fill(false));
+					flagged = Array.from({ length: cfg.rows }, () => Array(cfg.cols).fill(false));
+					gameOver = false; gameStarted = false; gameWon = false;
+					overlay.classList.remove('show');
+					mineCountEl.textContent = cfg.mines;
+				}
+
+				function placeMines(safeR, safeC) {
+					const cfg = getConfig();
+					let placed = 0;
+					while (placed < cfg.mines) {
+						const r = Math.floor(Math.random() * cfg.rows);
+						const c = Math.floor(Math.random() * cfg.cols);
+						if (grid[r][c] === -1) continue;
+						if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
+						grid[r][c] = -1;
+						placed++;
+					}
+					// Calculate numbers
+					for (let r = 0; r < cfg.rows; r++) {
+						for (let c = 0; c < cfg.cols; c++) {
+							if (grid[r][c] === -1) continue;
+							let count = 0;
+							for (let dr = -1; dr <= 1; dr++)
+								for (let dc = -1; dc <= 1; dc++) {
+									const nr = r + dr, nc = c + dc;
+									if (nr >= 0 && nr < cfg.rows && nc >= 0 && nc < cfg.cols && grid[nr][nc] === -1) count++;
+								}
+							grid[r][c] = count;
+						}
+					}
+					gameStarted = true;
+				}
+
+				function reveal(r, c) {
+					const cfg = getConfig();
+					if (r < 0 || r >= cfg.rows || c < 0 || c >= cfg.cols) return;
+					if (revealed[r][c] || flagged[r][c]) return;
+
+					revealed[r][c] = true;
+
+					if (grid[r][c] === 0) {
+						// Flood fill
+						for (let dr = -1; dr <= 1; dr++)
+							for (let dc = -1; dc <= 1; dc++)
+								reveal(r + dr, c + dc);
+					}
+				}
+
+				function checkWin() {
+					const cfg = getConfig();
+					for (let r = 0; r < cfg.rows; r++)
+						for (let c = 0; c < cfg.cols; c++) {
+							if (grid[r][c] !== -1 && !revealed[r][c]) return false;
+						}
+					return true;
+				}
+
+				function endGame(won) {
+					gameOver = true;
+					gameWon = won;
+					if (won) {
+						resultTitle.textContent = '🎉 恭喜通关';
+						resultMsg.textContent = '你赢了！';
+						// Auto-flag remaining mines
+						const cfg = getConfig();
+						for (let r = 0; r < cfg.rows; r++)
+							for (let c = 0; c < cfg.cols; c++)
+								if (grid[r][c] === -1) flagged[r][c] = true;
+					} else {
+						resultTitle.textContent = '💥 踩雷了';
+						resultMsg.textContent = '游戏结束';
+						// Reveal all mines
+						const cfg = getConfig();
+						for (let r = 0; r < cfg.rows; r++)
+							for (let c = 0; c < cfg.cols; c++)
+								if (grid[r][c] === -1) revealed[r][c] = true;
+					}
+					overlay.classList.add('show');
+					draw();
+				}
+
+				function countRemaining() {
+					const cfg = getConfig();
+					let flaggedCount = 0;
+					for (let r = 0; r < cfg.rows; r++)
+						for (let c = 0; c < cfg.cols; c++)
+							if (flagged[r][c]) flaggedCount++;
+					return cfg.mines - flaggedCount;
+				}
+
+				// Drawing
+				function draw() {
+					const cfg = getConfig();
+					const sz = cfg.cellSize;
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+					for (let r = 0; r < cfg.rows; r++) {
+						for (let c = 0; c < cfg.cols; c++) {
+							const x = c * sz, y = r * sz;
+
+							if (revealed[r][c]) {
+								if (grid[r][c] === -1) {
+									// Mine
+									ctx.fillStyle = '#ef4444';
+									ctx.fillRect(x, y, sz, sz);
+									ctx.fillStyle = '#fff';
+									ctx.font = `${sz * 0.6}px sans-serif`;
+									ctx.textAlign = 'center';
+									ctx.textBaseline = 'middle';
+									ctx.fillText('💣', x + sz/2, y + sz/2);
+								} else {
+									ctx.fillStyle = '#1e293b';
+									ctx.fillRect(x, y, sz, sz);
+									if (grid[r][c] > 0) {
+										const colors = ['', '#3b82f6', '#22c55e', '#ef4444', '#8b5cf6', '#f59e0b', '#06b6d4', '#ec4899', '#f97316'];
+										ctx.fillStyle = colors[grid[r][c]] || '#fff';
+										ctx.font = `bold ${sz * 0.55}px sans-serif`;
+										ctx.textAlign = 'center';
+										ctx.textBaseline = 'middle';
+										ctx.fillText(grid[r][c], x + sz/2, y + sz/2 + 1);
+									}
+								}
+							} else {
+								// Unrevealed
+								ctx.fillStyle = flagged[r][c] ? '#334155' : '#1e293b';
+								ctx.fillRect(x, y, sz, sz);
+								// Border
+								ctx.strokeStyle = '#0f172a';
+								ctx.lineWidth = 1;
+								ctx.strokeRect(x, y, sz, sz);
+								if (flagged[r][c]) {
+									ctx.fillStyle = '#ef4444';
+									ctx.font = `${sz * 0.55}px sans-serif`;
+									ctx.textAlign = 'center';
+									ctx.textBaseline = 'middle';
+									ctx.fillText('🚩', x + sz/2, y + sz/2);
+								}
+							}
+						}
+					}
+				}
+
+				// Handle click
+				function handleCanvasClick(e) {
+					if (gameOver) return;
+					const cfg = getConfig();
+					const rect = canvas.getBoundingClientRect();
+					const scaleX = canvas.width / rect.width;
+					const scaleY = canvas.height / rect.height;
+					const mx = (e.clientX - rect.left) * scaleX;
+					const my = (e.clientY - rect.top) * scaleY;
+					const c = Math.floor(mx / cfg.cellSize);
+					const r = Math.floor(my / cfg.cellSize);
+					if (r < 0 || r >= cfg.rows || c < 0 || c >= cfg.cols) return;
+					if (flagged[r][c]) return;
+
+					if (!gameStarted) placeMines(r, c);
+
+					if (grid[r][c] === -1) {
+						revealed[r][c] = true;
+						draw();
+						endGame(false);
+						return;
+					}
+					reveal(r, c);
+					draw();
+					if (checkWin()) endGame(true);
+				}
+
+				function handleCanvasRightClick(e) {
+					e.preventDefault();
+					if (gameOver) return;
+					const cfg = getConfig();
+					const rect = canvas.getBoundingClientRect();
+					const scaleX = canvas.width / rect.width;
+					const scaleY = canvas.height / rect.height;
+					const mx = (e.clientX - rect.left) * scaleX;
+					const my = (e.clientY - rect.top) * scaleY;
+					const c = Math.floor(mx / cfg.cellSize);
+					const r = Math.floor(my / cfg.cellSize);
+					if (r < 0 || r >= cfg.rows || c < 0 || c >= cfg.cols) return;
+					if (revealed[r][c]) return;
+					flagged[r][c] = !flagged[r][c];
+					mineCountEl.textContent = countRemaining();
+					draw();
+				}
+
+				function reset() {
+					initGrid();
+					draw();
+				}
+
+				// Events
+				canvas.addEventListener('click', handleCanvasClick);
+				canvas.addEventListener('contextmenu', handleCanvasRightClick);
+				document.addEventListener('keydown', (e) => {
+					if (e.key === 'f' || e.key === 'F') {
+						// Toggle flag mode - but we'll just let right-click handle it
+					}
+				});
+				resetBtn.addEventListener('click', reset);
+
+				diffBtns.forEach(btn => {
+					btn.addEventListener('click', () => {
+						diffBtns.forEach(b => b.classList.remove('active'));
+						btn.classList.add('active');
+						diff = btn.dataset.level;
+						const cfg = DIFFICULTIES[diff];
+						canvas.width = cfg.cols * cfg.cellSize;
+						canvas.height = cfg.rows * cfg.cellSize;
+						reset();
+					});
+				});
+
+				// Init
+				initGrid();
+				draw();
+			})();
+		</script>
+	</body>
+</html>

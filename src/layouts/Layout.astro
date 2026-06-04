@@ -1,0 +1,31 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ParticleBackground from '../components/ParticleBackground.astro';
+import { ClientRouter } from 'astro:transitions';
+
+export type Props = {
+	title: string;
+	description?: string;
+};
+
+const { title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={title} description={description || ''} />
+		<ClientRouter />
+	</head>
+	<body>
+		<ParticleBackground />
+		<Header />
+		<main transition:animate="fade">
+			<slot />
+		</main>
+		<Footer />
+		<script src="../scripts/scroll-animations.js"></script>
+	</body>
+</html>

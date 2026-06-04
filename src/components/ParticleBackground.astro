@@ -1,0 +1,108 @@
+<canvas id="particleCanvas" aria-hidden="true"></canvas>
+<script>
+(function() {
+	const canvas = document.getElementById('particleCanvas');
+	if (!canvas) return;
+
+	// Respect reduced motion preference
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		canvas.style.display = 'none';
+		return;
+	}
+
+	const ctx = canvas.getContext('2d');
+	let particles = [];
+	let mouse = { x: null, y: null, radius: 120 };
+
+	// Mobile detection for performance
+	const isMobile = window.innerWidth <= 720;
+	const COUNT = isMobile ? 20 : 50;
+	const CONNECTION_DIST = isMobile ? 100 : 150;
+
+	function resize() {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	}
+	window.addEventListener('resize', resize);
+	resize();
+
+	document.addEventListener('mousemove', (e) => {
+		mouse.x = e.clientX;
+		mouse.y = e.clientY;
+	});
+	document.addEventListener('mouseleave', () => {
+		mouse.x = null;
+		mouse.y = null;
+	});
+
+	for (let i = 0; i < COUNT; i++) {
+		particles.push({
+			x: Math.random() * canvas.width,
+			y: Math.random() * canvas.height,
+			vx: (Math.random() - 0.5) * 0.6,
+			vy: (Math.random() - 0.5) * 0.6,
+			size: Math.random() * 2 + 1,
+			opacity: Math.random() * 0.3 + 0.15,
+		});
+	}
+
+	function animate() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		particles.forEach((p, i) => {
+			if (mouse.x !== null && mouse.y !== null) {
+				const dx = p.x - mouse.x;
+				const dy = p.y - mouse.y;
+				const dist = Math.sqrt(dx * dx + dy * dy);
+				if (dist < mouse.radius && dist > 0) {
+					const force = (mouse.radius - dist) / mouse.radius;
+					p.vx += (dx / dist) * force * 0.5;
+					p.vy += (dy / dist) * force * 0.5;
+				}
+			}
+			p.x += p.vx;
+			p.y += p.vy;
+			p.vx *= 0.98;
+			p.vy *= 0.98;
+			if (p.x < -10) p.x = canvas.width + 10;
+			if (p.x > canvas.width + 10) p.x = -10;
+			if (p.y < -10) p.y = canvas.height + 10;
+			if (p.y > canvas.height + 10) p.y = -10;
+
+			ctx.beginPath();
+			ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+			ctx.fillStyle = `rgba(130, 140, 170, ${p.opacity})`;
+			ctx.fill();
+
+			for (let j = i + 1; j < particles.length; j++) {
+				const q = particles[j];
+				const dx = p.x - q.x;
+				const dy = p.y - q.y;
+				const dist = Math.sqrt(dx * dx + dy * dy);
+				if (dist < CONNECTION_DIST) {
+					ctx.beginPath();
+					ctx.moveTo(p.x, p.y);
+					ctx.lineTo(q.x, q.y);
+					const alpha = (1 - dist / CONNECTION_DIST) * 0.12;
+					ctx.strokeStyle = `rgba(130, 140, 170, ${alpha})`;
+					ctx.lineWidth = 0.6;
+					ctx.stroke();
+				}
+			}
+		});
+		requestAnimationFrame(animate);
+	}
+	animate();
+})();
+</script>
+<style>
+	#particleCanvas {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		z-index: 0;
+	}
+</style>

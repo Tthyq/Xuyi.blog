@@ -1,5 +1,4 @@
 ---
-import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
 ---
 
@@ -9,15 +8,40 @@ import HeaderLink from './HeaderLink.astro';
 			<span class="glow-dot"></span>
 			<h2><a href="/">XuYi</a></h2>
 		</div>
-		<div class="internal-links">
-			<HeaderLink href="/">首页</HeaderLink>
-			<HeaderLink href="/blog">博客</HeaderLink>
-			<HeaderLink href="/about">关于</HeaderLink>
+		<input type="checkbox" id="nav-toggle" class="nav-toggle" />
+		<label for="nav-toggle" class="hamburger" aria-label="Toggle navigation">
+			<span></span>
+			<span></span>
+			<span></span>
+		</label>
+		<div class="nav-links">
+			<a href="/blog" class:list={{ active: Astro.url.pathname.startsWith('/blog') }}>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+				阅读专栏
+			</a>
+			<a href="/ai" class:list={{ active: Astro.url.pathname.startsWith('/ai') }}>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 2-2 3-2 3h-4s-2-1-2-3a4 4 0 0 1 4-4z"/><path d="M8 15h8"/><path d="M8 19h8"/><path d="M12 11v4"/></svg>
+				AI 实验室
+			</a>
+			<a href="/games" class:list={{ active: Astro.url.pathname.startsWith('/games') }}>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="15" y1="13" x2="15.01" y2="13"/><line x1="18" y1="11" x2="18.01" y2="11"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
+				游乐场
+			</a>
+			<a href="/wall" class:list={{ active: Astro.url.pathname.startsWith('/wall') }}>
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+				留言墙
+			</a>
+			<a href="/about" class:list={{ active: Astro.url.pathname.startsWith('/about') }}>关于</a>
 		</div>
-		<div class="social-links">
+		<div class="right-links">
+			<button id="theme-toggle" class="theme-toggle" aria-label="切换深色模式" title="切换深色模式">
+				<svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+				<svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+			</button>
+			<a href="/about" class="about-link">关于</a>
 			<a href="https://github.com" target="_blank" title="GitHub">
 				<span class="sr-only">GitHub</span>
-				<svg viewBox="0 0 16 16" aria-hidden="true" width="28" height="28"
+				<svg viewBox="0 0 16 16" aria-hidden="true" width="24" height="24"
 					><path
 						fill="currentColor"
 						d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
@@ -27,17 +51,31 @@ import HeaderLink from './HeaderLink.astro';
 		</div>
 	</nav>
 </header>
+<script>
+	document.addEventListener('astro:page-load', () => {
+		const toggle = document.getElementById('theme-toggle');
+		if (!toggle) return;
+
+		toggle.addEventListener('click', () => {
+			const current = document.documentElement.getAttribute('data-theme');
+			const next = current === 'dark' ? 'light' : 'dark';
+			document.documentElement.setAttribute('data-theme', next);
+			localStorage.setItem('theme', next);
+		});
+	});
+</script>
 <style>
 	header {
 		margin: 0;
 		padding: 0 1.5em;
-		background: rgba(255, 255, 255, 0.8);
+		background: var(--bg-header);
 		backdrop-filter: blur(16px);
 		-webkit-backdrop-filter: blur(16px);
-		border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+		border-bottom: 1px solid var(--border-color);
 		position: sticky;
 		top: 0;
 		z-index: 100;
+		transition: background 0.3s ease, border-color 0.3s ease;
 	}
 	.brand {
 		display: flex;
@@ -49,44 +87,137 @@ import HeaderLink from './HeaderLink.astro';
 		font-size: 1.2em;
 		font-weight: 700;
 	}
-	h2 a,
-	h2 a.active {
-		text-decoration: none;
-	}
+	h2 a { text-decoration: none; color: rgb(var(--black)); }
 	nav {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		gap: 1em;
 	}
-	nav a {
-		padding: 1em 0.5em;
-		color: var(--black);
-		border-bottom: 4px solid transparent;
-		text-decoration: none;
-		transition: color 0.2s ease;
-	}
-	nav a:hover {
-		color: var(--accent);
-	}
-	nav a.active {
-		text-decoration: none;
-		border-bottom-color: var(--accent);
-		color: var(--accent);
-	}
-	.social-links,
-	.social-links a {
+	.nav-links {
 		display: flex;
+		align-items: center;
+		gap: 0.25em;
 	}
-	.social-links a {
-		color: rgb(var(--gray));
-		padding: 0.5em;
+	.nav-links a {
+		display: flex;
+		align-items: center;
+		gap: 0.35em;
+		padding: 0.6em 1em;
+		color: rgb(var(--gray-dark));
+		text-decoration: none;
+		border-radius: 8px;
+		font-size: 0.95rem;
+		font-weight: 500;
+		transition: all 0.2s ease;
 	}
-	.social-links a:hover {
+	.nav-links a:hover {
+		background: rgba(37, 99, 235, 0.06);
 		color: var(--accent);
+	}
+	.nav-links a.active {
+		background: rgba(37, 99, 235, 0.1);
+		color: var(--accent);
+		font-weight: 600;
+	}
+	.nav-links svg {
+		flex-shrink: 0;
+	}
+	.right-links {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+	}
+	.right-links a {
+		color: rgb(var(--gray));
+		text-decoration: none;
+		padding: 0.4em;
+		border-radius: 6px;
+		transition: all 0.2s ease;
+		font-size: 0.9rem;
+	}
+	.right-links a:hover {
+		color: var(--accent);
+		background: rgba(37, 99, 235, 0.06);
+	}
+	.about-link {
+		padding: 0.4em 0.8em !important;
+	}
+	.theme-toggle {
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 0.4em;
+		border-radius: 6px;
+		color: rgb(var(--gray));
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+	}
+	.theme-toggle:hover {
+		color: var(--accent);
+		background: rgba(37, 99, 235, 0.06);
+	}
+	.icon-moon { display: none; }
+	[data-theme="dark"] .icon-sun { display: none; }
+	[data-theme="dark"] .icon-moon { display: block; }
+	.nav-toggle {
+		display: none;
+	}
+	.hamburger {
+		display: none;
+		cursor: pointer;
+		padding: 0.5em;
+		z-index: 101;
+	}
+	.hamburger span {
+		display: block;
+		width: 22px;
+		height: 2px;
+		background: rgb(var(--gray-dark));
+		margin: 5px 0;
+		transition: all 0.3s ease;
+		border-radius: 2px;
+	}
+	.nav-toggle:checked ~ .hamburger span:nth-child(1) {
+		transform: rotate(45deg) translate(5px, 5px);
+	}
+	.nav-toggle:checked ~ .hamburger span:nth-child(2) {
+		opacity: 0;
+	}
+	.nav-toggle:checked ~ .hamburger span:nth-child(3) {
+		transform: rotate(-45deg) translate(5px, -5px);
 	}
 	@media (max-width: 720px) {
-		.social-links {
-			display: none;
+		.hamburger {
+			display: block;
 		}
+		.nav-links {
+			display: none;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			background: var(--bg-header);
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			flex-direction: column;
+			padding: 1em;
+			border-bottom: 1px solid var(--border-color);
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+			gap: 0.25em;
+		}
+		.nav-toggle:checked ~ .nav-links {
+			display: flex;
+		}
+		.nav-links a {
+			padding: 0.8em 1em;
+			font-size: 1rem;
+			border-radius: 8px;
+			justify-content: center;
+		}
+		.nav-links svg { display: inline; }
+		.right-links { gap: 0; }
+		.right-links .about-link { display: none; }
 	}
 </style>

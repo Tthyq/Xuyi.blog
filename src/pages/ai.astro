@@ -1,0 +1,899 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ParticleBackground from '../components/ParticleBackground.astro';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title="AI 实验室 — XuYi" description="多模型对话与 AI 能力试验场" />
+		<style>
+			.ai-layout {
+				display: flex;
+				gap: 0;
+				height: calc(100vh - 140px);
+				min-height: 480px;
+				width: 100%;
+				max-width: 1200px;
+				margin: 0 auto;
+				background: var(--bg-card);
+				backdrop-filter: blur(16px);
+				-webkit-backdrop-filter: blur(16px);
+				border: 1px solid var(--border-color);
+				border-radius: 20px;
+				overflow: hidden;
+				box-shadow: 0 8px 32px rgba(37,99,235,0.06);
+				position: relative;
+			}
+
+			/* ── Sidebar ── */
+			.sidebar {
+				width: 220px;
+				flex-shrink: 0;
+				border-right: 1px solid var(--border-color);
+				display: flex;
+				flex-direction: column;
+				background: var(--bg-secondary);
+			}
+			.sidebar-header {
+				padding: 1.2em 1em;
+				font-size: 0.8rem;
+				font-weight: 600;
+				color: var(--text-secondary);
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+				border-bottom: 1px solid var(--border-color);
+			}
+			.model-list {
+				flex: 1;
+				padding: 0.6em;
+				display: flex;
+				flex-direction: column;
+				gap: 0.3em;
+				overflow-y: auto;
+			}
+			.model-btn {
+				display: flex;
+				align-items: center;
+				gap: 0.6em;
+				padding: 0.65em 0.8em;
+				border: none;
+				border-radius: 10px;
+				background: transparent;
+				color: var(--text-primary);
+				font-size: 0.85rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				text-align: left;
+				width: 100%;
+			}
+			.model-btn:hover {
+				background: rgba(37,99,235,0.06);
+				color: var(--accent);
+			}
+			.model-btn.active {
+				background: rgba(37,99,235,0.1);
+				color: var(--accent);
+				font-weight: 600;
+				box-shadow: inset 3px 0 0 var(--accent);
+			}
+			.model-dot {
+				width: 8px;
+				height: 8px;
+				border-radius: 50%;
+				flex-shrink: 0;
+			}
+			.dot-doubao { background: #2563eb; }
+			.dot-kimi { background: #8b5cf6; }
+			.dot-gpt { background: #06b6d4; }
+			.dot-deepseek { background: #f59e0b; }
+			.dot-gemini { background: #10b981; }
+
+			/* ── Chat Area ── */
+			.chat-area {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				min-width: 0;
+			}
+			.chat-header {
+				padding: 0.9em 1.2em;
+				border-bottom: 1px solid var(--border-color);
+				font-size: 0.85rem;
+				font-weight: 500;
+				color: var(--text-secondary);
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+			.chat-header .status-dot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: #10b981;
+				display: inline-block;
+			}
+			.messages {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1.2em;
+				display: flex;
+				flex-direction: column;
+				gap: 1em;
+			}
+			.msg {
+				max-width: 80%;
+				padding: 0.8em 1em;
+				border-radius: 14px;
+				font-size: 0.9rem;
+				line-height: 1.6;
+				animation: msg-in 0.25s ease;
+			}
+			@keyframes msg-in {
+				from { opacity: 0; transform: translateY(8px); }
+				to { opacity: 1; transform: translateY(0); }
+			}
+			.msg.user {
+				align-self: flex-end;
+				background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+				color: #fff;
+				border-bottom-right-radius: 4px;
+			}
+			.msg.assistant {
+				align-self: flex-start;
+				background: var(--bg-secondary);
+				color: var(--text-primary);
+				border-bottom-left-radius: 4px;
+			}
+			.msg.assistant .msg-label {
+				font-size: 0.7rem;
+				font-weight: 600;
+				color: var(--accent);
+				margin-bottom: 0.3em;
+			}
+			.msg.thinking {
+				align-self: flex-start;
+				background: transparent;
+				color: var(--text-secondary);
+				font-size: 0.85rem;
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+			}
+			.thinking-dots span {
+				display: inline-block;
+				width: 5px;
+				height: 5px;
+				border-radius: 50%;
+				background: var(--text-secondary);
+				animation: dot-pulse 1.2s infinite;
+			}
+			.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+			.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+			@keyframes dot-pulse {
+				0%, 80%, 100% { opacity: 0.3; }
+				40% { opacity: 1; }
+			}
+
+			/* ── Input Area ── */
+			.input-area {
+				padding: 1em 1.2em;
+				border-top: 1px solid var(--border-color);
+				display: flex;
+				gap: 0.6em;
+				align-items: flex-end;
+			}
+			.input-area textarea {
+				flex: 1;
+				border: 1px solid var(--border-color);
+				border-radius: 12px;
+				padding: 0.6em 1em;
+				font-family: inherit;
+				font-size: 0.85rem;
+				resize: none;
+				outline: none;
+				background: var(--bg-card);
+				color: var(--text-primary);
+				transition: border-color 0.2s;
+				line-height: 1.5;
+				min-height: 42px;
+				max-height: 120px;
+			}
+			.input-area textarea:focus {
+				border-color: var(--accent);
+			}
+			.send-btn {
+				width: 42px;
+				height: 42px;
+				border-radius: 12px;
+				border: none;
+				background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+				color: #fff;
+				cursor: pointer;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: all 0.2s;
+				flex-shrink: 0;
+			}
+			.send-btn:hover { opacity: 0.9; transform: scale(1.05); }
+			.send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+			.send-btn svg {
+				width: 18px;
+				height: 18px;
+			}
+
+			/* ── Empty State ── */
+			.empty-state {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				color: var(--text-secondary);
+				gap: 0.5em;
+			}
+			.empty-state svg {
+				width: 48px;
+				height: 48px;
+				opacity: 0.3;
+				margin-bottom: 0.5em;
+			}
+			.empty-state p {
+				margin: 0;
+				font-size: 0.9rem;
+			}
+			.empty-state .hint {
+				font-size: 0.8rem;
+				opacity: 0.6;
+			}
+
+			/* ── Settings Button ── */
+			.settings-btn {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+				padding: 0.8em 1em;
+				margin: 0.6em;
+				border: none;
+				border-radius: 10px;
+				background: transparent;
+				color: var(--text-secondary);
+				font-size: 0.8rem;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+			.settings-btn:hover {
+				background: rgba(37,99,235,0.06);
+				color: var(--accent);
+			}
+
+			/* ── Settings Panel ── */
+			.settings-panel {
+				position: absolute;
+				top: 0;
+				right: 0;
+				width: 380px;
+				height: 100%;
+				background: var(--bg-card);
+				backdrop-filter: blur(16px);
+				-webkit-backdrop-filter: blur(16px);
+				border-left: 1px solid var(--border-color);
+				display: none;
+				flex-direction: column;
+				z-index: 10;
+				animation: slide-in 0.3s ease;
+			}
+			.settings-panel.active {
+				display: flex;
+			}
+			@keyframes slide-in {
+				from { transform: translateX(100%); }
+				to { transform: translateX(0); }
+			}
+			.settings-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				padding: 1em 1.2em;
+				border-bottom: 1px solid var(--border-color);
+			}
+			.settings-header h3 {
+				margin: 0;
+				font-size: 1rem;
+				color: var(--text-primary);
+			}
+			.close-btn {
+				background: none;
+				border: none;
+				cursor: pointer;
+				color: var(--text-secondary);
+				padding: 0.3em;
+				border-radius: 6px;
+				transition: all 0.2s ease;
+			}
+			.close-btn:hover {
+				background: rgba(37,99,235,0.06);
+				color: var(--accent);
+			}
+			.settings-body {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1.2em;
+			}
+			.settings-desc {
+				margin: 0 0 1.2em 0;
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				line-height: 1.5;
+			}
+			.api-group {
+				margin-bottom: 1.2em;
+			}
+			.api-label {
+				display: flex;
+				align-items: center;
+				gap: 0.5em;
+				font-size: 0.85rem;
+				font-weight: 500;
+				color: var(--text-primary);
+				margin-bottom: 0.5em;
+			}
+			.api-input {
+				width: 100%;
+				padding: 0.6em 0.8em;
+				border: 1px solid var(--border-color);
+				border-radius: 8px;
+				font-size: 0.85rem;
+				background: var(--bg-card);
+				color: var(--text-primary);
+				outline: none;
+				transition: border-color 0.2s;
+				box-sizing: border-box;
+			}
+			.api-input:focus {
+				border-color: var(--accent);
+			}
+			.api-endpoint {
+				margin-top: 0.4em;
+			}
+			.save-btn {
+				width: 100%;
+				padding: 0.7em;
+				border: none;
+				border-radius: 10px;
+				background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+				color: #fff;
+				font-size: 0.9rem;
+				font-weight: 500;
+				cursor: pointer;
+				transition: all 0.2s;
+				margin-top: 0.5em;
+			}
+			.save-btn:hover {
+				opacity: 0.9;
+				transform: translateY(-1px);
+			}
+			.toast {
+				position: fixed;
+				bottom: 2em;
+				left: 50%;
+				transform: translateX(-50%);
+				padding: 0.8em 1.5em;
+				background: var(--bg-card-solid);
+				color: var(--text-primary);
+				border-radius: 10px;
+				font-size: 0.85rem;
+				box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+				z-index: 1000;
+				animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s;
+				opacity: 0;
+			}
+			.toast.show {
+				opacity: 1;
+			}
+			@keyframes toast-in {
+				from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+				to { transform: translateX(-50%) translateY(0); opacity: 1; }
+			}
+			@keyframes toast-out {
+				from { transform: translateX(-50%) translateY(0); opacity: 1; }
+				to { transform: translateX(-50%) translateY(20px); opacity: 0; }
+			}
+
+			@media (max-width: 720px) {
+				.ai-layout {
+					flex-direction: column;
+					height: calc(100vh - 120px);
+					border-radius: 12px;
+				}
+				.sidebar {
+					width: 100%;
+					flex-direction: row;
+					border-right: none;
+					border-bottom: 1px solid var(--border-color);
+					overflow-x: auto;
+				}
+				.sidebar-header { display: none; }
+				.model-list {
+					flex-direction: row;
+					padding: 0.4em;
+				}
+				.model-btn {
+					white-space: nowrap;
+					padding: 0.5em 0.8em;
+				}
+				.model-btn.active {
+					box-shadow: inset 0 -2px 0 var(--accent);
+				}
+				.msg { max-width: 90%; }
+				.settings-panel {
+					width: 100%;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<ParticleBackground />
+		<Header />
+		<main style="width:100%;max-width:1240px;padding:1em;background:transparent;box-shadow:none;backdrop-filter:none;">
+			<div class="ai-layout" id="ai-layout">
+				<!-- Sidebar -->
+				<aside class="sidebar">
+					<div class="sidebar-header">AI 模型</div>
+					<div class="model-list" id="model-list">
+						<button class="model-btn active" data-model="doubao">
+							<span class="model-dot dot-doubao"></span> 豆包
+						</button>
+						<button class="model-btn" data-model="kimi">
+							<span class="model-dot dot-kimi"></span> Kimi
+						</button>
+						<button class="model-btn" data-model="gpt">
+							<span class="model-dot dot-gpt"></span> GPT
+						</button>
+						<button class="model-btn" data-model="deepseek">
+							<span class="model-dot dot-deepseek"></span> DeepSeek
+						</button>
+						<button class="model-btn" data-model="gemini">
+							<span class="model-dot dot-gemini"></span> Gemini
+						</button>
+					</div>
+					<button class="settings-btn" id="settings-btn" title="API 设置">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+						</svg>
+						<span>API 设置</span>
+					</button>
+				</aside>
+
+				<!-- Chat -->
+				<div class="chat-area">
+					<div class="chat-header">
+						<span class="status-dot"></span>
+						<span id="current-model-label">豆包</span>
+						<span style="color:var(--text-secondary);font-size:0.8rem;">· 在线</span>
+					</div>
+
+					<div class="messages" id="messages">
+						<div class="empty-state" id="empty-state">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M12 2a4 4 0 0 1 4 4c0 2-2 3-2 3h-4s-2-1-2-3a4 4 0 0 1 4-4z"/>
+								<path d="M8 15h8"/>
+								<path d="M8 19h8"/>
+								<path d="M12 11v4"/>
+								<circle cx="16" cy="16" r="1"/>
+								<circle cx="8" cy="16" r="1"/>
+							</svg>
+							<p>选择一个模型，开始对话</p>
+							<p class="hint" id="api-status-hint">请先配置 API 密钥</p>
+						</div>
+					</div>
+
+					<div class="input-area">
+						<textarea id="chat-input" rows="1" placeholder="输入消息…" maxlength="2000"></textarea>
+						<button class="send-btn" id="send-btn" title="发送">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+							</svg>
+						</button>
+					</div>
+				</div>
+
+				<!-- Settings Panel -->
+				<div class="settings-panel" id="settings-panel">
+					<div class="settings-header">
+						<h3>API 设置</h3>
+						<button class="close-btn" id="close-settings">
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+							</svg>
+						</button>
+					</div>
+					<div class="settings-body">
+						<p class="settings-desc">配置各模型的 API 密钥，密钥仅保存在本地浏览器中。</p>
+
+						<div class="api-group">
+							<label class="api-label">
+								<span class="model-dot dot-doubao"></span> 豆包 (字节跳动)
+							</label>
+							<input type="password" class="api-input" id="api-doubao" placeholder="输入 API Key" />
+							<input type="text" class="api-input api-endpoint" id="endpoint-doubao" placeholder="API Endpoint (可选)" />
+						</div>
+
+						<div class="api-group">
+							<label class="api-label">
+								<span class="model-dot dot-kimi"></span> Kimi (月之暗面)
+							</label>
+							<input type="password" class="api-input" id="api-kimi" placeholder="输入 API Key" />
+							<input type="text" class="api-input api-endpoint" id="endpoint-kimi" placeholder="API Endpoint (可选)" />
+						</div>
+
+						<div class="api-group">
+							<label class="api-label">
+								<span class="model-dot dot-gpt"></span> GPT (OpenAI)
+							</label>
+							<input type="password" class="api-input" id="api-gpt" placeholder="输入 API Key" />
+							<input type="text" class="api-input api-endpoint" id="endpoint-gpt" placeholder="API Endpoint (可选)" />
+						</div>
+
+						<div class="api-group">
+							<label class="api-label">
+								<span class="model-dot dot-deepseek"></span> DeepSeek
+							</label>
+							<input type="password" class="api-input" id="api-deepseek" placeholder="输入 API Key" />
+							<input type="text" class="api-input api-endpoint" id="endpoint-deepseek" placeholder="API Endpoint (可选)" />
+						</div>
+
+						<div class="api-group">
+							<label class="api-label">
+								<span class="model-dot dot-gemini"></span> Gemini (Google)
+							</label>
+							<input type="password" class="api-input" id="api-gemini" placeholder="输入 API Key" />
+							<input type="text" class="api-input api-endpoint" id="endpoint-gemini" placeholder="API Endpoint (可选)" />
+						</div>
+
+						<button class="save-btn" id="save-settings">保存设置</button>
+					</div>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			(function() {
+				const messagesEl = document.getElementById('messages');
+				const emptyState = document.getElementById('empty-state');
+				const input = document.getElementById('chat-input');
+				const sendBtn = document.getElementById('send-btn');
+				const modelLabel = document.getElementById('current-model-label');
+				const modelBtns = document.querySelectorAll('.model-btn');
+				const settingsBtn = document.getElementById('settings-btn');
+				const settingsPanel = document.getElementById('settings-panel');
+				const closeSettings = document.getElementById('close-settings');
+				const saveSettings = document.getElementById('save-settings');
+				const apiStatusHint = document.getElementById('api-status-hint');
+
+				// Model display names
+				const modelNames = {
+					doubao: '豆包',
+					kimi: 'Kimi',
+					gpt: 'GPT',
+					deepseek: 'DeepSeek',
+					gemini: 'Gemini'
+				};
+
+				// Default API endpoints
+				const defaultEndpoints = {
+					doubao: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+					kimi: 'https://api.moonshot.cn/v1/chat/completions',
+					gpt: 'https://api.openai.com/v1/chat/completions',
+					deepseek: 'https://api.deepseek.com/v1/chat/completions',
+					gemini: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
+				};
+
+				let currentModel = 'doubao';
+				let isWaiting = false;
+				let conversationHistory = {};
+
+				// Load saved settings
+				function loadSettings() {
+					const saved = localStorage.getItem('ai-api-settings');
+					if (saved) {
+						try {
+							return JSON.parse(saved);
+						} catch (e) {
+							return {};
+						}
+					}
+					return {};
+				}
+
+				// Save settings
+				function saveSettingsToStorage() {
+					const settings = {};
+					const models = ['doubao', 'kimi', 'gpt', 'deepseek', 'gemini'];
+					models.forEach(model => {
+						const apiKey = document.getElementById(`api-${model}`).value;
+						const endpoint = document.getElementById(`endpoint-${model}`).value;
+						if (apiKey) {
+							settings[model] = {
+								apiKey,
+								endpoint: endpoint || defaultEndpoints[model]
+							};
+						}
+					});
+					localStorage.setItem('ai-api-settings', JSON.stringify(settings));
+					updateApiStatus();
+					showToast('设置已保存');
+				}
+
+				// Load settings into form
+				function loadSettingsIntoForm() {
+					const settings = loadSettings();
+					const models = ['doubao', 'kimi', 'gpt', 'deepseek', 'gemini'];
+					models.forEach(model => {
+						if (settings[model]) {
+							document.getElementById(`api-${model}`).value = settings[model].apiKey || '';
+							document.getElementById(`endpoint-${model}`).value = settings[model].endpoint || '';
+						} else {
+							document.getElementById(`endpoint-${model}`).value = defaultEndpoints[model];
+						}
+					});
+				}
+
+				// Update API status hint
+				function updateApiStatus() {
+					const settings = loadSettings();
+					const configured = Object.keys(settings).length;
+					if (configured > 0) {
+						apiStatusHint.textContent = `已配置 ${configured} 个模型`;
+					} else {
+						apiStatusHint.textContent = '请先配置 API 密钥';
+					}
+				}
+
+				// Show toast notification
+				function showToast(message) {
+					const existing = document.querySelector('.toast');
+					if (existing) existing.remove();
+
+					const toast = document.createElement('div');
+					toast.className = 'toast';
+					toast.textContent = message;
+					document.body.appendChild(toast);
+
+					requestAnimationFrame(() => {
+						toast.classList.add('show');
+					});
+
+					setTimeout(() => {
+						toast.remove();
+					}, 3000);
+				}
+
+				// Check if model has API configured
+				function isModelConfigured(model) {
+					const settings = loadSettings();
+					return settings[model] && settings[model].apiKey;
+				}
+
+				// Call AI API
+				async function callAIAPI(model, message) {
+					const settings = loadSettings();
+					const config = settings[model];
+
+					if (!config || !config.apiKey) {
+						throw new Error('API 未配置');
+					}
+
+					// Initialize conversation history for model
+					if (!conversationHistory[model]) {
+						conversationHistory[model] = [];
+					}
+
+					// Add user message to history
+					conversationHistory[model].push({
+						role: 'user',
+						content: message
+					});
+
+					// Keep last 10 messages for context
+					const recentHistory = conversationHistory[model].slice(-10);
+
+					if (model === 'gemini') {
+						// Gemini API format
+						const response = await fetch(`${config.endpoint}?key=${config.apiKey}`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								contents: recentHistory.map(msg => ({
+									parts: [{ text: msg.content }],
+									role: msg.role === 'user' ? 'user' : 'model'
+								}))
+							})
+						});
+
+						if (!response.ok) {
+							const error = await response.text();
+							throw new Error(`API 错误: ${response.status}`);
+						}
+
+						const data = await response.json();
+						const assistantMessage = data.candidates[0].content.parts[0].text;
+
+						conversationHistory[model].push({
+							role: 'assistant',
+							content: assistantMessage
+						});
+
+						return assistantMessage;
+					} else {
+						// OpenAI-compatible API format (doubao, kimi, gpt, deepseek)
+						const response = await fetch(config.endpoint, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'Authorization': `Bearer ${config.apiKey}`
+							},
+							body: JSON.stringify({
+								model: getModelId(model),
+								messages: recentHistory,
+								max_tokens: 2000,
+								temperature: 0.7
+							})
+						});
+
+						if (!response.ok) {
+							const error = await response.text();
+							throw new Error(`API 错误: ${response.status}`);
+						}
+
+						const data = await response.json();
+						const assistantMessage = data.choices[0].message.content;
+
+						conversationHistory[model].push({
+							role: 'assistant',
+							content: assistantMessage
+						});
+
+						return assistantMessage;
+					}
+				}
+
+				// Get model ID for API call
+				function getModelId(model) {
+					const modelIds = {
+						doubao: 'doubao-pro-32k',
+						kimi: 'moonshot-v1-8k',
+						gpt: 'gpt-3.5-turbo',
+						deepseek: 'deepseek-chat',
+						gemini: 'gemini-pro'
+					};
+					return modelIds[model] || model;
+				}
+
+				// Auto-resize textarea
+				input.addEventListener('input', () => {
+					input.style.height = 'auto';
+					input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+				});
+
+				// Switch model
+				modelBtns.forEach(btn => {
+					btn.addEventListener('click', () => {
+						modelBtns.forEach(b => b.classList.remove('active'));
+						btn.classList.add('active');
+						currentModel = btn.dataset.model;
+						modelLabel.textContent = modelNames[currentModel];
+					});
+				});
+
+				// Settings panel toggle
+				settingsBtn.addEventListener('click', () => {
+					settingsPanel.classList.add('active');
+					loadSettingsIntoForm();
+				});
+
+				closeSettings.addEventListener('click', () => {
+					settingsPanel.classList.remove('active');
+				});
+
+				saveSettings.addEventListener('click', saveSettingsToStorage);
+
+				// Send message
+				async function sendMessage() {
+					const text = input.value.trim();
+					if (!text || isWaiting) return;
+
+					// Check if model is configured
+					if (!isModelConfigured(currentModel)) {
+						showToast('请先配置该模型的 API 密钥');
+						settingsPanel.classList.add('active');
+						loadSettingsIntoForm();
+						return;
+					}
+
+					// Hide empty state
+					emptyState.style.display = 'none';
+
+					// Add user message
+					addMessage(text, 'user');
+					input.value = '';
+					input.style.height = 'auto';
+
+					// Show thinking indicator
+					isWaiting = true;
+					sendBtn.disabled = true;
+					const thinkingId = addThinking();
+
+					try {
+						const response = await callAIAPI(currentModel, text);
+						removeThinking(thinkingId);
+						addMessage(response, 'assistant', modelNames[currentModel]);
+					} catch (error) {
+						removeThinking(thinkingId);
+						addMessage(`错误: ${error.message}`, 'assistant', modelNames[currentModel]);
+					}
+
+					isWaiting = false;
+					sendBtn.disabled = false;
+					messagesEl.scrollTop = messagesEl.scrollHeight;
+				}
+
+				function addMessage(text, role, model) {
+					const div = document.createElement('div');
+					div.className = `msg ${role}`;
+					if (role === 'assistant') {
+						div.innerHTML = `<div class="msg-label">${model}</div>${escapeHtml(text)}`;
+					} else {
+						div.textContent = text;
+					}
+					messagesEl.appendChild(div);
+					messagesEl.scrollTop = messagesEl.scrollHeight;
+					return div;
+				}
+
+				function addThinking() {
+					const div = document.createElement('div');
+					div.className = 'msg thinking';
+					div.innerHTML = '<span>思考中</span><span class="thinking-dots"><span></span><span></span><span></span></span>';
+					messagesEl.appendChild(div);
+					messagesEl.scrollTop = messagesEl.scrollHeight;
+					return div;
+				}
+
+				function removeThinking(el) {
+					if (el && el.parentNode) el.remove();
+				}
+
+				function escapeHtml(str) {
+					const d = document.createElement('div');
+					d.textContent = str;
+					return d.innerHTML;
+				}
+
+				// Enter to send, Shift+Enter for newline
+				input.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter' && !e.shiftKey) {
+						e.preventDefault();
+						sendMessage();
+					}
+				});
+
+				sendBtn.addEventListener('click', sendMessage);
+
+				// Focus input on model switch
+				modelBtns.forEach(btn => {
+					btn.addEventListener('click', () => input.focus());
+				});
+
+				// Initialize
+				updateApiStatus();
+			})();
+		</script>
+	</body>
+</html>

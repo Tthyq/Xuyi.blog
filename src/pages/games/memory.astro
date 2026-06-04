@@ -1,0 +1,232 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import ParticleBackground from '../../components/ParticleBackground.astro';
+import { SITE_TITLE } from '../../consts';
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead title={'翻牌配对 · ' + SITE_TITLE} description="记忆力翻牌配对游戏" />
+		<style>
+			.game-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1.5em; }
+			.game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; }
+			.stats { display: flex; gap: 1em; }
+			.stat-box { text-align: center; padding: 0.3em 0.8em; background: rgba(37,99,235,0.08); border-radius: 8px; }
+			.stat-box .label { font-size: 0.7rem; color: rgb(var(--gray)); }
+			.stat-box .value { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+			.game-btn { padding: 0.5em 1.2em; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+			.btn-new { background: var(--accent); color: #fff; }
+			.btn-new:hover { background: var(--accent-dark); }
+			.difficulty { display: flex; gap: 0.5em; margin-bottom: 0.5em; }
+			.diff-btn { padding: 0.4em 1em; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+			.diff-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+			.board { display: grid; gap: 8px; padding: 10px; background: rgba(37,99,235,0.05); border-radius: 12px; }
+			.card { perspective: 800px; cursor: pointer; }
+			.card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.5s ease; }
+			.card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+			.card-face { position: absolute; inset: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+			.card-front { background: var(--accent); color: #fff; font-size: 1.5rem; font-weight: 700; }
+			.card-back { background: var(--bg-card); border: 2px solid var(--border-color); transform: rotateY(180deg); font-size: 2rem; }
+			.card.matched .card-back { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+			.card.matched { pointer-events: none; }
+			.card.flipped { pointer-events: none; }
+			.game-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 100; }
+			.game-overlay.show { opacity: 1; pointer-events: auto; }
+			.overlay-content { background: var(--bg-card); border-radius: 16px; padding: 2em; text-align: center; max-width: 300px; }
+			.overlay-content h2 { margin: 0 0 0.5em 0; font-size: 1.5rem; }
+			.overlay-content p { margin: 0 0 1em 0; color: rgb(var(--gray)); }
+			.overlay-content .stars { font-size: 2rem; margin-bottom: 0.5em; }
+			[data-theme="dark"] .card-front { background: rgba(96,165,250,0.3); }
+			@media (max-width: 720px) {
+				.card-front { font-size: 1.2rem; }
+				.card-back { font-size: 1.5rem; }
+			}
+		</style>
+	</head>
+	<body>
+		<ParticleBackground />
+		<Header />
+		<main>
+			<div class="game-wrapper">
+				<h2 style="margin:0;font-size:1.5rem;">翻牌配对</h2>
+				<div class="difficulty">
+					<button class="diff-btn active" data-size="4">4x4</button>
+					<button class="diff-btn" data-size="6">6x6</button>
+				</div>
+				<div class="game-header">
+					<div class="stats">
+						<div class="stat-box">
+							<div class="label">步数</div>
+							<div class="value" id="moves">0</div>
+						</div>
+						<div class="stat-box">
+							<div class="label">配对</div>
+							<div class="value" id="pairs">0/8</div>
+						</div>
+						<div class="stat-box">
+							<div class="label">时间</div>
+							<div class="value" id="timer">0s</div>
+						</div>
+					</div>
+					<button class="game-btn btn-new" id="newBtn">新游戏</button>
+				</div>
+				<div class="board" id="board"></div>
+			</div>
+			<div class="game-overlay" id="overlay">
+				<div class="overlay-content">
+					<div class="stars" id="stars"></div>
+					<h2>恭喜通关!</h2>
+					<p id="resultText"></p>
+					<button class="game-btn btn-new" id="restartBtn">再来一局</button>
+				</div>
+			</div>
+		</main>
+		<Footer />
+
+		<script>
+			(function() {
+				const boardEl = document.getElementById('board');
+				const movesEl = document.getElementById('moves');
+				const pairsEl = document.getElementById('pairs');
+				const timerEl = document.getElementById('timer');
+				const overlay = document.getElementById('overlay');
+				const starsEl = document.getElementById('stars');
+				const resultText = document.getElementById('resultText');
+				const newBtn = document.getElementById('newBtn');
+				const restartBtn = document.getElementById('restartBtn');
+				const diffBtns = document.querySelectorAll('.diff-btn');
+
+				const EMOJIS = ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦'];
+
+				let gridSize = 4;
+				let cards = [];
+				let flippedCards = [];
+				let matchedCount = 0;
+				let moves = 0;
+				let totalPairs = 0;
+				let timerInterval = null;
+				let seconds = 0;
+				let locked = false;
+
+				function init() {
+					clearInterval(timerInterval);
+					timerInterval = null;
+					seconds = 0;
+					moves = 0;
+					matchedCount = 0;
+					flippedCards = [];
+					locked = false;
+					totalPairs = (gridSize * gridSize) / 2;
+
+					movesEl.textContent = '0';
+					pairsEl.textContent = `0/${totalPairs}`;
+					timerEl.textContent = '0s';
+					overlay.classList.remove('show');
+
+					const emojis = EMOJIS.slice(0, totalPairs);
+					cards = [...emojis, ...emojis];
+					// Fisher-Yates shuffle
+					for (let i = cards.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						[cards[i], cards[j]] = [cards[j], cards[i]];
+					}
+
+					const cellSize = gridSize === 4 ? 80 : 60;
+					boardEl.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
+					boardEl.style.gridAutoRows = `${cellSize}px`;
+
+					boardEl.innerHTML = cards.map((emoji, i) => `
+						<div class="card" data-index="${i}" data-emoji="${emoji}" style="height:${cellSize}px">
+							<div class="card-inner">
+								<div class="card-face card-front">?</div>
+								<div class="card-face card-back">${emoji}</div>
+							</div>
+						</div>
+					`).join('');
+
+					boardEl.querySelectorAll('.card').forEach(card => {
+						card.addEventListener('click', () => flipCard(card));
+					});
+				}
+
+				function flipCard(card) {
+					if (locked) return;
+					if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+
+					// Start timer on first flip
+					if (!timerInterval) {
+						timerInterval = setInterval(() => {
+							seconds++;
+							timerEl.textContent = seconds + 's';
+						}, 1000);
+					}
+
+					card.classList.add('flipped');
+					flippedCards.push(card);
+
+					if (flippedCards.length === 2) {
+						moves++;
+						movesEl.textContent = moves;
+						checkMatch();
+					}
+				}
+
+				function checkMatch() {
+					const [a, b] = flippedCards;
+					if (a.dataset.emoji === b.dataset.emoji) {
+						// Match found
+						setTimeout(() => {
+							a.classList.add('matched');
+							b.classList.add('matched');
+							a.classList.remove('flipped');
+							b.classList.remove('flipped');
+							matchedCount++;
+							pairsEl.textContent = `${matchedCount}/${totalPairs}`;
+							flippedCards = [];
+
+							if (matchedCount === totalPairs) {
+								clearInterval(timerInterval);
+								setTimeout(showWin, 400);
+							}
+						}, 300);
+					} else {
+						// No match
+						locked = true;
+						setTimeout(() => {
+							a.classList.remove('flipped');
+							b.classList.remove('flipped');
+							flippedCards = [];
+							locked = false;
+						}, 800);
+					}
+				}
+
+				function showWin() {
+					const minMoves = totalPairs;
+					const ratio = moves / minMoves;
+					let starCount = ratio <= 1.5 ? 3 : ratio <= 2.5 ? 2 : 1;
+					starsEl.textContent = '⭐'.repeat(starCount);
+					resultText.textContent = `用了 ${moves} 步，耗时 ${seconds} 秒`;
+					overlay.classList.add('show');
+				}
+
+				diffBtns.forEach(btn => {
+					btn.addEventListener('click', () => {
+						diffBtns.forEach(b => b.classList.remove('active'));
+						btn.classList.add('active');
+						gridSize = parseInt(btn.dataset.size);
+						init();
+					});
+				});
+
+				newBtn.addEventListener('click', init);
+				restartBtn.addEventListener('click', init);
+
+				init();
+			})();
+		</script>
+	</body>
+</html>

@@ -21,6 +21,14 @@ const { title, description, image = FallbackImage } = Astro.props;
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<script is:inline>
+(function() {
+	const saved = localStorage.getItem('theme');
+	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+	const theme = saved || (prefersDark ? 'dark' : 'light');
+	document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" href="/favicon.ico" />
 <link rel="sitemap" href="/sitemap-index.xml" />
@@ -55,3 +63,28 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+<script>
+(function() {
+	let seq = [];
+	document.addEventListener("keydown", (e) => {
+		if (e.key === "0" || e.key === "1") {
+			seq.push(e.key);
+			if (seq.length > 2) seq.shift();
+			if (seq.join("") === "01") {
+				seq = [];
+				document.documentElement.style.filter =
+					document.documentElement.style.filter === "invert(1)" ? "none" : "invert(1)";
+			}
+		} else {
+			seq = [];
+		}
+	});
+	const css = "color: #22c55e; font-weight: bold;";
+	console.log("%c  ┌──────────────────────────────────┐", css);
+	console.log("%c  │   [ OK ] 控制台已连接              │", css);
+	console.log("%c  └──────────────────────────────────┘", css);
+	console.log("");
+	console.log("%c你好。这里没什么机密，只有一个曾经为修多系统引导死磕了 17 个小时的折腾记录。", "color: #94a3b8;");
+	console.log("%c如果你也是习惯性打开控制台排查 bug 的朋友，祝你今天一切顺利，少见红字报错。", "color: #94a3b8;");
+})();
+</script>
