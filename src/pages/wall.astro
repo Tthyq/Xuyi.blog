@@ -36,183 +36,29 @@ import { ClientRouter } from 'astro:transitions';
 				margin-bottom: 2em;
 				font-size: 0.95rem;
 			}
-			.input-area {
-				background: var(--bg-card);
-				border: 1px solid var(--border-color);
-				border-radius: 16px;
+			.giscus-wrapper {
+				margin-top: 1em;
+			}
+			.login-hint {
+				text-align: center;
 				padding: 1.5em;
-				margin-bottom: 2em;
-			}
-			.input-row {
-				display: flex;
-				gap: 0.8em;
-				margin-bottom: 0.8em;
-			}
-			.input-row input {
-				flex: 1;
-				padding: 0.6em 1em;
-				border: 1px solid var(--border-color);
-				border-radius: 8px;
-				background: var(--bg-main);
-				color: var(--text-primary);
-				font-size: 0.9rem;
-				font-family: inherit;
-				outline: none;
-				transition: border-color 0.2s;
-			}
-			.input-row input:focus {
-				border-color: var(--accent);
-			}
-			.input-area textarea {
-				width: 100%;
-				min-height: 100px;
-				padding: 0.8em 1em;
-				border: 1px solid var(--border-color);
-				border-radius: 8px;
-				background: var(--bg-main);
-				color: var(--text-primary);
-				font-size: 0.9rem;
-				font-family: inherit;
-				outline: none;
-				resize: vertical;
-				transition: border-color 0.2s;
-				box-sizing: border-box;
-			}
-			.input-area textarea:focus {
-				border-color: var(--accent);
-			}
-			.input-footer {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin-top: 0.8em;
-			}
-			.char-count {
-				font-size: 0.8rem;
-				color: rgb(var(--gray));
-			}
-			.submit-btn {
-				padding: 0.6em 1.5em;
-				background: var(--accent);
-				color: #fff;
-				border: none;
-				border-radius: 8px;
-				font-size: 0.9rem;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.2s;
-				font-family: inherit;
-			}
-			.submit-btn:hover {
-				background: var(--accent-dark);
-			}
-			.submit-btn:disabled {
-				opacity: 0.5;
-				cursor: not-allowed;
-			}
-			.wall-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin-bottom: 1em;
-			}
-			.wall-header h3 {
-				margin: 0;
-				font-size: 1.1rem;
-			}
-			.msg-count {
-				font-size: 0.85rem;
-				color: rgb(var(--gray));
-			}
-			.wall-grid {
-				display: grid;
-				grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-				gap: 1em;
-			}
-			.msg-card {
 				background: var(--bg-card);
 				border: 1px solid var(--border-color);
 				border-radius: 12px;
-				padding: 1.2em;
-				transition: all 0.3s ease;
-				animation: fadeIn 0.3s ease;
+				margin-bottom: 1.5em;
 			}
-			.msg-card:hover {
-				transform: translateY(-2px);
-				box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-			}
-			@keyframes fadeIn {
-				from { opacity: 0; transform: translateY(10px); }
-				to { opacity: 1; transform: translateY(0); }
-			}
-			.msg-author {
-				font-weight: 600;
-				font-size: 0.9rem;
-				color: var(--accent);
-				margin-bottom: 0.4em;
-			}
-			.msg-content {
-				font-size: 0.85rem;
-				line-height: 1.6;
-				color: var(--text-primary);
-				margin-bottom: 0.6em;
-				word-break: break-word;
-			}
-			.msg-time {
-				font-size: 0.75rem;
-				color: rgb(var(--gray));
-			}
-			.msg-delete {
-				float: right;
-				background: none;
-				border: none;
-				color: rgb(var(--gray));
-				cursor: pointer;
-				font-size: 0.75rem;
-				padding: 0.2em;
-				border-radius: 4px;
-				transition: all 0.2s;
-			}
-			.msg-delete:hover {
-				color: #ef4444;
-				background: rgba(239,68,68,0.1);
-			}
-			.empty-state {
-				text-align: center;
-				padding: 3em;
-				color: rgb(var(--gray));
-			}
-			.empty-state p {
+			.login-hint p {
 				margin: 0;
-				font-size: 0.95rem;
-			}
-			[data-theme="dark"] .msg-card {
-				border-color: rgba(255,255,255,0.08);
-			}
-			.toast {
-				position: fixed;
-				bottom: 2em;
-				left: 50%;
-				transform: translateX(-50%) translateY(100px);
-				background: var(--accent);
-				color: #fff;
-				padding: 0.8em 1.5em;
-				border-radius: 8px;
+				color: rgb(var(--gray));
 				font-size: 0.9rem;
-				font-weight: 500;
-				transition: transform 0.3s ease;
-				z-index: 1000;
 			}
-			.toast.show {
-				transform: translateX(-50%) translateY(0);
+			.login-hint a {
+				color: var(--accent);
+				text-decoration: none;
+				font-weight: 600;
 			}
-			@media (max-width: 720px) {
-				.input-row {
-					flex-direction: column;
-				}
-				.wall-grid {
-					grid-template-columns: 1fr;
-				}
+			.login-hint a:hover {
+				text-decoration: underline;
 			}
 		</style>
 	</head>
@@ -220,147 +66,39 @@ import { ClientRouter } from 'astro:transitions';
 		<Header />
 		<main transition:animate="fade">
 			<h2 class="page-title">留言墙</h2>
-			<p class="page-desc">写下你想说的话，它们会留在这里</p>
+			<p class="page-desc">写下你想说的话，它们会留在这里。使用 GitHub 账号登录即可留言。</p>
 
-			<div class="input-area">
-				<div class="input-row">
-					<input type="text" id="authorInput" placeholder="你的名字（选填）" maxlength="20" />
-				</div>
-				<textarea id="msgInput" placeholder="写下你的留言..." maxlength="500"></textarea>
-				<div class="input-footer">
-					<span class="char-count"><span id="charCount">0</span>/500</span>
-					<button class="submit-btn" id="submitBtn" disabled>发布留言</button>
-				</div>
+			<div class="login-hint">
+				<p>需要 <a href="https://github.com/login" target="_blank">GitHub 账号</a> 才能留言，留言会同步到项目的 Discussions 中。</p>
 			</div>
 
-			<div class="wall-header">
-				<h3>全部留言</h3>
-				<span class="msg-count" id="msgCount">0 条留言</span>
-			</div>
-			<div class="wall-grid" id="wallGrid"></div>
-			<div class="empty-state" id="emptyState">
-				<p>还没有留言，来写第一条吧</p>
+			<div class="giscus-wrapper">
+				<giscus-widget
+					repo="Tthyq/Xuyi.blog"
+					repoId="R_kgDOScVCRQ"
+					category="Announcements"
+					categoryId="DIC_kwDOScVCRc4C-fci"
+					mapping="pathname"
+					strict="0"
+					reactionsEnabled="1"
+					emitMetadata="0"
+					inputPosition="top"
+					theme="preferred_color_scheme"
+					lang="zh-CN"
+				></giscus-widget>
 			</div>
 		</main>
 		<Footer />
-		<div class="toast" id="toast"></div>
 
 		<script>
-			function initWall() {
-				const authorInput = document.getElementById('authorInput');
-				const msgInput = document.getElementById('msgInput');
-				const charCount = document.getElementById('charCount');
-				const submitBtn = document.getElementById('submitBtn');
-				const wallGrid = document.getElementById('wallGrid');
-				const emptyState = document.getElementById('emptyState');
-				const msgCount = document.getElementById('msgCount');
-				const toast = document.getElementById('toast');
-
-				const STORAGE_KEY = 'wall_messages';
-
-				function getMessages() {
-					try {
-						return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-					} catch {
-						return [];
-					}
+			// Load giscus web component
+			(function() {
+				if (!customElements.get('giscus-widget')) {
+					const s = document.createElement('script');
+					s.src = 'https://unpkg.com/giscus@0.2.0/dist/giscus-widget.js';
+					document.head.appendChild(s);
 				}
-
-				function saveMessages(msgs) {
-					localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
-				}
-
-				function showToast(text) {
-					toast.textContent = text;
-					toast.classList.add('show');
-					setTimeout(() => toast.classList.remove('show'), 2000);
-				}
-
-				function formatTime(ts) {
-					const d = new Date(ts);
-					const now = new Date();
-					const diff = now - d;
-					if (diff < 60000) return '刚刚';
-					if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
-					if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
-					if (diff < 604800000) return Math.floor(diff / 86400000) + ' 天前';
-					return d.toLocaleDateString('zh-CN');
-				}
-
-				function renderMessages() {
-					const msgs = getMessages();
-					msgCount.textContent = msgs.length + ' 条留言';
-
-					if (msgs.length === 0) {
-						wallGrid.innerHTML = '';
-						emptyState.style.display = 'block';
-						return;
-					}
-
-					emptyState.style.display = 'none';
-					wallGrid.innerHTML = msgs.map((msg, i) => `
-						<div class="msg-card">
-							<button class="msg-delete" data-index="${i}" title="删除">删除</button>
-							<div class="msg-author">${escapeHtml(msg.author || '匿名')}</div>
-							<div class="msg-content">${escapeHtml(msg.content)}</div>
-							<div class="msg-time">${formatTime(msg.time)}</div>
-						</div>
-					`).join('');
-
-					wallGrid.querySelectorAll('.msg-delete').forEach(btn => {
-						btn.addEventListener('click', () => {
-							const idx = parseInt(btn.dataset.index);
-							const msgs = getMessages();
-							msgs.splice(idx, 1);
-							saveMessages(msgs);
-							renderMessages();
-							showToast('留言已删除');
-						});
-					});
-				}
-
-				function escapeHtml(str) {
-					const div = document.createElement('div');
-					div.textContent = str;
-					return div.innerHTML;
-				}
-
-				msgInput.addEventListener('input', () => {
-					charCount.textContent = msgInput.value.length;
-					submitBtn.disabled = msgInput.value.trim().length === 0;
-				});
-
-				submitBtn.addEventListener('click', () => {
-					const content = msgInput.value.trim();
-					if (!content) return;
-
-					const msgs = getMessages();
-					msgs.unshift({
-						author: authorInput.value.trim() || '匿名',
-						content: content,
-						time: Date.now()
-					});
-					saveMessages(msgs);
-
-					msgInput.value = '';
-					charCount.textContent = '0';
-					submitBtn.disabled = true;
-
-					renderMessages();
-					showToast('留言发布成功');
-				});
-
-				msgInput.addEventListener('keydown', (e) => {
-					if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-						e.preventDefault();
-						submitBtn.click();
-					}
-				});
-
-				renderMessages();
-			}
-
-			document.addEventListener('astro:page-load', initWall);
+			})();
 		</script>
 	</body>
 </html>
