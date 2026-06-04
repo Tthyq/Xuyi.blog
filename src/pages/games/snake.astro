@@ -2,7 +2,6 @@
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
-import ParticleBackground from '../../components/ParticleBackground.astro';
 import { SITE_TITLE } from '../../consts';
 ---
 
@@ -22,22 +21,19 @@ import { SITE_TITLE } from '../../consts';
 			.btn-reset { background: rgba(37,99,235,0.08); color: var(--accent); }
 			.btn-reset:hover { background: rgba(37,99,235,0.15); }
 			.canvas-wrapper { position: relative; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 2px solid rgb(var(--gray-light)); }
-			canvas { display: block; background: #0f172a; width: 500px; height: 500px; }
+			canvas { display: block; background: #0f172a; }
 			.game-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); color: #fff; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 			.game-overlay.show { opacity: 1; pointer-events: auto; }
 			.game-overlay h2 { color: #fff; font-size: 2rem; margin: 0 0 0.3em 0; }
 			.game-overlay p { margin: 0 0 1em 0; font-size: 1.1rem; opacity: 0.7; }
 			.game-overlay .final-score { font-size: 3rem; font-weight: 700; color: #22c55e; margin: 0 0 0.5em 0; }
 			.high-score { font-size: 0.85rem; color: rgb(var(--gray)); text-align: center; margin-top: 0.5em; }
-			.speed-indicator { font-size: 0.85rem; color: rgb(var(--gray)); text-align: center; }
-			.speed-indicator span { color: var(--accent); font-weight: 600; }
 			.controls-hint { font-size: 0.8rem; color: rgb(var(--gray)); text-align: center; margin-top: 0.5em; }
 			.controls-hint kbd { padding: 0.15em 0.4em; border-radius: 4px; background: rgb(var(--gray-light)); font-size: 0.8rem; font-family: inherit; }
-			@media (max-width: 720px) { canvas { width: 100%; height: auto; aspect-ratio: 1/1; } }
+			@media (max-width: 720px) { canvas { width: 100%; height: auto; } }
 		</style>
 	</head>
 	<body>
-		<ParticleBackground />
 		<Header />
 		<main>
 			<div class="game-wrapper">
@@ -50,7 +46,7 @@ import { SITE_TITLE } from '../../consts';
 					</div>
 				</div>
 				<div class="canvas-wrapper">
-					<canvas id="gameCanvas" width="500" height="500"></canvas>
+					<canvas id="gameCanvas" width="400" height="400"></canvas>
 					<div class="game-overlay" id="gameOverlay">
 						<h2>游戏结束</h2>
 						<div class="final-score" id="finalScore">0</div>
@@ -59,9 +55,8 @@ import { SITE_TITLE } from '../../consts';
 					</div>
 				</div>
 				<div class="high-score">最高分 <span id="highScore">0</span></div>
-				<div class="speed-indicator">当前速度 <span id="speedLevel">1</span></div>
 				<div class="controls-hint">
-					使用 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 或方向键控制 · <kbd>Space</kbd> 暂停/继续
+					使用 <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> 或方向键控制
 				</div>
 			</div>
 		</main>
@@ -74,29 +69,21 @@ import { SITE_TITLE } from '../../consts';
 				const scoreEl = document.getElementById('score');
 				const highScoreEl = document.getElementById('highScore');
 				const finalScoreEl = document.getElementById('finalScore');
-				const speedLevelEl = document.getElementById('speedLevel');
 				const overlay = document.getElementById('gameOverlay');
 				const startBtn = document.getElementById('startBtn');
 				const resetBtn = document.getElementById('resetBtn');
 				const restartBtn = document.getElementById('restartBtn');
 
-				const GRID = 20, COLS = 25, ROWS = 25;
-				const BASE_TICK = 150; // ms at speed level 1
-				const MIN_TICK = 50;   // ms at max speed
-				const SPEED_STEP = 3;  // scores needed per speed level
+				const GRID = 20, COLS = 20, ROWS = 20;
+				canvas.width = COLS * GRID;
+				canvas.height = ROWS * GRID;
 
 				let snake, food, direction, nextDirection, score, highScore;
-				let gameRunning = false, gamePaused = false, gameOver = false;
+				let gameRunning = false, gameOver = false;
 				let gameLoop = null;
 
 				highScore = parseInt(localStorage.getItem('snakeHighScore') || '0');
 				highScoreEl.textContent = highScore;
-
-				function getSpeed() {
-					const level = Math.floor(score / SPEED_STEP) + 1;
-					const tick = Math.max(MIN_TICK, BASE_TICK - (level - 1) * 12);
-					return { level, tick };
-				}
 
 				function init() {
 					const midX = Math.floor(COLS / 2);
@@ -110,9 +97,7 @@ import { SITE_TITLE } from '../../consts';
 					nextDirection = { x: 1, y: 0 };
 					score = 0;
 					gameOver = false;
-					gamePaused = false;
 					scoreEl.textContent = '0';
-					speedLevelEl.textContent = '1';
 					overlay.classList.remove('show');
 					spawnFood();
 				}
@@ -130,7 +115,7 @@ import { SITE_TITLE } from '../../consts';
 				}
 
 				function update() {
-					if (gamePaused || gameOver) return;
+					if (gameOver) return;
 
 					direction = { ...nextDirection };
 
@@ -139,9 +124,11 @@ import { SITE_TITLE } from '../../consts';
 						y: snake[0].y + direction.y,
 					};
 
+					// Wall collision
 					if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
 						endGame(); return;
 					}
+					// Self collision
 					if (snake.some(s => s.x === head.x && s.y === head.y)) {
 						endGame(); return;
 					}
@@ -151,14 +138,6 @@ import { SITE_TITLE } from '../../consts';
 					if (head.x === food.x && head.y === food.y) {
 						score++;
 						scoreEl.textContent = score;
-						// Update speed indicator
-						const { level } = getSpeed();
-						speedLevelEl.textContent = level;
-						// Restart loop at new speed
-						if (gameRunning) {
-							if (gameLoop) clearInterval(gameLoop);
-							gameLoop = setInterval(tick, getSpeed().tick);
-						}
 						spawnFood();
 					} else {
 						snake.pop();
@@ -176,12 +155,13 @@ import { SITE_TITLE } from '../../consts';
 						highScoreEl.textContent = highScore;
 					}
 					overlay.classList.add('show');
+					startBtn.textContent = '开始游戏';
 				}
 
 				function draw() {
 					ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-					// Grid lines
+					// Grid
 					ctx.strokeStyle = 'rgba(255,255,255,0.03)';
 					ctx.lineWidth = 1;
 					for (let i = 0; i <= COLS; i++) {
@@ -193,49 +173,23 @@ import { SITE_TITLE } from '../../consts';
 
 					// Food
 					ctx.fillStyle = '#ef4444';
-					ctx.shadowColor = '#ef4444';
-					ctx.shadowBlur = 12;
 					ctx.beginPath();
 					ctx.arc(food.x * GRID + GRID / 2, food.y * GRID + GRID / 2, GRID / 2 - 2, 0, Math.PI * 2);
 					ctx.fill();
-					ctx.shadowBlur = 0;
 
-					// Snake body
+					// Snake
 					snake.forEach((seg, i) => {
 						const ratio = 1 - i / snake.length;
 						const hue = 140 + Math.floor(ratio * 40);
 						const lightness = 45 + Math.floor(ratio * 20);
 						ctx.fillStyle = `hsl(${hue}, 80%, ${lightness}%)`;
-						const pad = i === 0 ? 1 : 2;
-						const r = i === 0 ? 4 : 3;
-						ctx.beginPath();
-						ctx.roundRect(seg.x * GRID + pad, seg.y * GRID + pad, GRID - pad * 2, GRID - pad * 2, r);
-						ctx.fill();
+						ctx.fillRect(seg.x * GRID + 2, seg.y * GRID + 2, GRID - 4, GRID - 4);
 					});
 
-					// Snake head glow
-					ctx.shadowColor = '#22c55e';
-					ctx.shadowBlur = 15;
+					// Head highlight
 					const head = snake[0];
 					ctx.fillStyle = '#22c55e';
-					ctx.beginPath();
-					ctx.roundRect(head.x * GRID + 1, head.y * GRID + 1, GRID - 2, GRID - 2, 5);
-					ctx.fill();
-					ctx.shadowBlur = 0;
-
-					// Pause overlay
-					if (gamePaused && gameRunning) {
-						ctx.fillStyle = 'rgba(15,23,42,0.6)';
-						ctx.fillRect(0, 0, canvas.width, canvas.height);
-						ctx.fillStyle = '#fff';
-						ctx.font = 'bold 36px sans-serif';
-						ctx.textAlign = 'center';
-						ctx.textBaseline = 'middle';
-						ctx.fillText('已暂停', canvas.width / 2, canvas.height / 2);
-						ctx.font = '16px sans-serif';
-						ctx.fillStyle = 'rgba(255,255,255,0.6)';
-						ctx.fillText('按 Space 继续', canvas.width / 2, canvas.height / 2 + 40);
-					}
+					ctx.fillRect(head.x * GRID + 1, head.y * GRID + 1, GRID - 2, GRID - 2);
 				}
 
 				function tick() {
@@ -249,12 +203,12 @@ import { SITE_TITLE } from '../../consts';
 					gameRunning = true;
 					startBtn.textContent = '游戏中...';
 					if (gameLoop) clearInterval(gameLoop);
-					gameLoop = setInterval(tick, getSpeed().tick);
+					gameLoop = setInterval(tick, 120);
 				}
 
 				function resetGame() {
 					if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
-					gameRunning = false; gameOver = false; gamePaused = false;
+					gameRunning = false; gameOver = false;
 					startBtn.textContent = '开始游戏';
 					overlay.classList.remove('show');
 					init();
@@ -264,14 +218,22 @@ import { SITE_TITLE } from '../../consts';
 				document.addEventListener('keydown', (e) => {
 					const key = e.key;
 					if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','W','s','S','a','A','d','D'].includes(key)) e.preventDefault();
-					if (!gameRunning && key !== ' ') return;
 
-					if (key === ' ' || key === 'Space') {
+					if (key === ' ') {
 						e.preventDefault();
-						if (gameRunning && !gameOver) { gamePaused = !gamePaused; draw(); }
+						if (gameRunning && !gameOver) {
+							// Toggle pause
+							if (gameLoop) {
+								clearInterval(gameLoop);
+								gameLoop = null;
+							} else {
+								gameLoop = setInterval(tick, 120);
+							}
+						}
 						return;
 					}
-					if (gamePaused || gameOver) return;
+
+					if (!gameRunning || gameOver) return;
 
 					switch (key) {
 						case 'ArrowUp': case 'w': case 'W': if (direction.y !== 1) nextDirection = { x: 0, y: -1 }; break;

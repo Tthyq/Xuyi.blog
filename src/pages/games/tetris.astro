@@ -10,98 +10,33 @@ import { SITE_TITLE } from '../../consts';
 	<head>
 		<BaseHead title={'俄罗斯方块 · ' + SITE_TITLE} description="经典俄罗斯方块游戏" />
 		<style>
-			.game-wrapper {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				gap: 1.2em;
-			}
-			.game-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				width: 100%;
-				max-width: 500px;
-			}
-			.stats {
-				display: flex;
-				gap: 1.5em;
-				font-size: 0.9rem;
-				color: rgb(var(--gray));
-			}
+			.game-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1.2em; }
+			.game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 500px; }
+			.stats { display: flex; gap: 1.5em; font-size: 0.9rem; color: rgb(var(--gray)); }
 			.stats span { font-weight: 600; color: var(--accent); font-size: 1.2rem; }
-			.game-btn {
-				padding: 0.5em 1.2em;
-				border-radius: 8px;
-				border: none;
-				font-size: 0.85rem;
-				font-weight: 600;
-				cursor: pointer;
-				transition: all 0.2s;
-				font-family: inherit;
-			}
+			.game-btn { padding: 0.5em 1.2em; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
 			.btn-start { background: var(--accent); color: #fff; }
 			.btn-start:hover { background: var(--accent-dark); }
 			.btn-reset { background: rgba(37,99,235,0.08); color: var(--accent); }
 			.btn-reset:hover { background: rgba(37,99,235,0.15); }
-			.play-area {
-				display: flex;
-				gap: 1.5em;
-				align-items: flex-start;
-			}
-			.canvas-wrapper {
-				position: relative;
-				border-radius: 12px;
-				overflow: hidden;
-				box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-				border: 2px solid rgb(var(--gray-light));
-			}
+			.play-area { display: flex; gap: 1.5em; align-items: flex-start; }
+			.canvas-wrapper { position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 2px solid rgb(var(--gray-light)); }
 			canvas#board { display: block; background: #0f172a; }
-			.side-panel {
-				display: flex;
-				flex-direction: column;
-				gap: 1em;
-				min-width: 120px;
-			}
-			.panel-box {
-				background: rgba(15,23,42,0.03);
-				border-radius: 12px;
-				padding: 1em;
-				text-align: center;
-			}
-			.panel-box h4 {
-				font-size: 0.8rem;
-				margin: 0 0 0.5em 0;
-				color: rgb(var(--gray));
-				font-weight: 500;
-			}
+			.side-panel { display: flex; flex-direction: column; gap: 1em; min-width: 120px; }
+			.panel-box { background: rgba(15,23,42,0.03); border-radius: 12px; padding: 1em; text-align: center; }
+			.panel-box h4 { font-size: 0.8rem; margin: 0 0 0.5em 0; color: rgb(var(--gray)); font-weight: 500; }
 			canvas#nextCanvas { display: block; margin: 0 auto; background: #0f172a; border-radius: 8px; }
-			.game-overlay {
-				position: absolute;
-				inset: 0;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-content: center;
-				background: rgba(15,23,42,0.85);
-				color: #fff;
-				opacity: 0;
-				pointer-events: none;
-				transition: opacity 0.3s;
-			}
+			.game-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); color: #fff; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 			.game-overlay.show { opacity: 1; pointer-events: auto; }
 			.game-overlay h2 { color: #fff; font-size: 2rem; margin: 0 0 0.3em 0; }
 			.game-overlay .final-score { font-size: 3rem; font-weight: 700; color: #22c55e; margin: 0 0 0.3em 0; }
 			.game-overlay p { margin: 0 0 1em 0; opacity: 0.7; }
 			.controls-hint { font-size: 0.8rem; color: rgb(var(--gray)); text-align: center; }
-			.controls-hint kbd {
-				padding: 0.15em 0.4em; border-radius: 4px;
-				background: rgb(var(--gray-light)); font-size: 0.8rem; font-family: inherit;
-			}
+			.controls-hint kbd { padding: 0.15em 0.4em; border-radius: 4px; background: rgb(var(--gray-light)); font-size: 0.8rem; font-family: inherit; }
 			@media (max-width: 720px) {
 				.play-area { flex-direction: column; align-items: center; }
 				.side-panel { flex-direction: row; min-width: auto; }
-				canvas#board { width: 100%; height: auto; aspect-ratio: 1/2; }
+				canvas#board { width: 100%; height: auto; }
 			}
 		</style>
 	</head>
@@ -151,8 +86,7 @@ import { SITE_TITLE } from '../../consts';
 
 		<script>
 			(function() {
-				const COLS = 10, ROWS = 20;
-				const BLOCK = 30;
+				const COLS = 10, ROWS = 20, BLOCK = 30;
 				const boardCanvas = document.getElementById('board');
 				const ctx = boardCanvas.getContext('2d');
 				const nextCanvas = document.getElementById('nextCanvas');
@@ -168,7 +102,6 @@ import { SITE_TITLE } from '../../consts';
 				const resetBtn = document.getElementById('resetBtn');
 				const restartBtn = document.getElementById('restartBtn');
 
-				// Tetromino definitions
 				const SHAPES = {
 					I: { blocks: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]], color: '#06b6d4' },
 					O: { blocks: [[1,1],[1,1]], color: '#facc15' },
@@ -185,6 +118,7 @@ import { SITE_TITLE } from '../../consts';
 				let gameRunning = false, gamePaused = false, gameOver = false;
 				let gameLoop = null;
 				let dropCounter = 0;
+				let lastTime = 0;
 
 				highScore = parseInt(localStorage.getItem('tetrisHighScore') || '0');
 				highScoreEl.textContent = highScore;
@@ -245,7 +179,7 @@ import { SITE_TITLE } from '../../consts';
 							board.splice(r, 1);
 							board.unshift(Array(COLS).fill(0));
 							cleared++;
-							r++; // re-check same row
+							r++;
 						}
 					}
 					if (cleared > 0) {
@@ -279,7 +213,7 @@ import { SITE_TITLE } from '../../consts';
 				function endGame() {
 					gameOver = true;
 					gameRunning = false;
-					if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
+					if (gameLoop) { cancelAnimationFrame(gameLoop); gameLoop = null; }
 					finalScoreEl.textContent = score;
 					if (score > highScore) {
 						highScore = score;
@@ -287,9 +221,9 @@ import { SITE_TITLE } from '../../consts';
 						highScoreEl.textContent = highScore;
 					}
 					overlay.classList.add('show');
+					startBtn.textContent = '开始游戏';
 				}
 
-				// Drawing
 				function drawBoard() {
 					ctx.clearRect(0, 0, 300, 600);
 					// Grid
@@ -305,14 +239,9 @@ import { SITE_TITLE } from '../../consts';
 						for (let c = 0; c < COLS; c++) {
 							if (!board[r][c]) continue;
 							ctx.fillStyle = board[r][c];
-							ctx.shadowColor = board[r][c];
-							ctx.shadowBlur = 4;
-							ctx.beginPath();
-							ctx.roundRect(c*BLOCK+1, r*BLOCK+1, BLOCK-2, BLOCK-2, 3);
-							ctx.fill();
+							ctx.fillRect(c*BLOCK+1, r*BLOCK+1, BLOCK-2, BLOCK-2);
 						}
 					}
-					ctx.shadowBlur = 0;
 					// Ghost piece
 					if (currentPiece && !gameOver) {
 						let gy = currentY;
@@ -322,25 +251,18 @@ import { SITE_TITLE } from '../../consts';
 							for (let r = 0; r < currentPiece.blocks.length; r++)
 								for (let c = 0; c < currentPiece.blocks[r].length; c++) {
 									if (!currentPiece.blocks[r][c]) continue;
-									ctx.beginPath();
-									ctx.roundRect((currentX+c)*BLOCK+1, (gy+r)*BLOCK+1, BLOCK-2, BLOCK-2, 3);
-									ctx.fill();
+									ctx.fillRect((currentX+c)*BLOCK+1, (gy+r)*BLOCK+1, BLOCK-2, BLOCK-2);
 								}
 						}
 					}
 					// Current piece
 					if (currentPiece && !gameOver) {
 						ctx.fillStyle = currentPiece.color;
-						ctx.shadowColor = currentPiece.color;
-						ctx.shadowBlur = 6;
 						for (let r = 0; r < currentPiece.blocks.length; r++)
 							for (let c = 0; c < currentPiece.blocks[r].length; c++) {
 								if (!currentPiece.blocks[r][c]) continue;
-								ctx.beginPath();
-								ctx.roundRect((currentX+c)*BLOCK+1, (currentY+r)*BLOCK+1, BLOCK-2, BLOCK-2, 3);
-								ctx.fill();
+								ctx.fillRect((currentX+c)*BLOCK+1, (currentY+r)*BLOCK+1, BLOCK-2, BLOCK-2);
 							}
-						ctx.shadowBlur = 0;
 					}
 					// Pause overlay
 					if (gamePaused && gameRunning) {
@@ -362,37 +284,41 @@ import { SITE_TITLE } from '../../consts';
 					const offX = (120 - b[0].length * size) / 2;
 					const offY = (120 - b.length * size) / 2;
 					nctx.fillStyle = nextPiece.color;
-					nctx.shadowColor = nextPiece.color;
-					nctx.shadowBlur = 4;
 					for (let r = 0; r < b.length; r++)
 						for (let c = 0; c < b[r].length; c++) {
 							if (!b[r][c]) continue;
-							nctx.beginPath();
-							nctx.roundRect(offX + c*size+1, offY + r*size+1, size-2, size-2, 3);
-							nctx.fill();
+							nctx.fillRect(offX + c*size+1, offY + r*size+1, size-2, size-2);
 						}
-					nctx.shadowBlur = 0;
 				}
 
-				function tick() {
-					if (gamePaused || gameOver) return;
-					dropCounter++;
-					const speed = Math.max(1, 20 - level);
-					if (dropCounter >= speed) {
-						dropCounter = 0;
-						if (isValid(currentPiece.blocks, currentX, currentY + 1)) {
-							currentY++;
-						} else {
-							lockPiece();
+				function gameStep(time) {
+					if (!gameRunning || gameOver) return;
+
+					if (lastTime === 0) lastTime = time;
+					const delta = time - lastTime;
+					lastTime = time;
+
+					if (!gamePaused) {
+						dropCounter += delta;
+						const speed = Math.max(100, 500 - (level - 1) * 40);
+						if (dropCounter >= speed) {
+							dropCounter = 0;
+							if (isValid(currentPiece.blocks, currentX, currentY + 1)) {
+								currentY++;
+							} else {
+								lockPiece();
+							}
 						}
+						drawBoard();
 					}
-					drawBoard();
+
+					gameLoop = requestAnimationFrame(gameStep);
 				}
 
 				function startGame() {
 					if (gameRunning) return;
 					board = createBoard();
-					score = 0; lines = 0; level = 1; dropCounter = 0;
+					score = 0; lines = 0; level = 1; dropCounter = 0; lastTime = 0;
 					scoreEl.textContent = '0'; linesEl.textContent = '0'; levelEl.textContent = '1';
 					overlay.classList.remove('show');
 					gameOver = false; gamePaused = false;
@@ -400,13 +326,12 @@ import { SITE_TITLE } from '../../consts';
 					spawnPiece();
 					gameRunning = true;
 					startBtn.textContent = '游戏中...';
-					if (gameLoop) clearInterval(gameLoop);
-					gameLoop = setInterval(tick, 50);
+					gameLoop = requestAnimationFrame(gameStep);
 					drawBoard();
 				}
 
 				function resetGame() {
-					if (gameLoop) { clearInterval(gameLoop); gameLoop = null; }
+					if (gameLoop) { cancelAnimationFrame(gameLoop); gameLoop = null; }
 					gameRunning = false; gameOver = false; gamePaused = false;
 					startBtn.textContent = '开始游戏';
 					overlay.classList.remove('show');
@@ -418,7 +343,6 @@ import { SITE_TITLE } from '../../consts';
 					nctx.clearRect(0, 0, 120, 120);
 				}
 
-				// Input
 				document.addEventListener('keydown', (e) => {
 					const key = e.key;
 					if (!gameRunning && key !== ' ') return;
@@ -426,6 +350,10 @@ import { SITE_TITLE } from '../../consts';
 					if (key === 'p' || key === 'P') {
 						if (gameRunning && !gameOver) {
 							gamePaused = !gamePaused;
+							if (!gamePaused) {
+								lastTime = 0;
+								dropCounter = 0;
+							}
 							drawBoard();
 						}
 						return;
@@ -456,13 +384,10 @@ import { SITE_TITLE } from '../../consts';
 							const rotated = rotateMatrix(currentPiece.blocks);
 							if (isValid(rotated, currentX, currentY)) {
 								currentPiece.blocks = rotated;
-							} else {
-								// Wall kick: try left/right
-								if (isValid(rotated, currentX - 1, currentY)) {
-									currentPiece.blocks = rotated; currentX--;
-								} else if (isValid(rotated, currentX + 1, currentY)) {
-									currentPiece.blocks = rotated; currentX++;
-								}
+							} else if (isValid(rotated, currentX - 1, currentY)) {
+								currentPiece.blocks = rotated; currentX--;
+							} else if (isValid(rotated, currentX + 1, currentY)) {
+								currentPiece.blocks = rotated; currentX++;
 							}
 							drawBoard();
 							break;
@@ -478,7 +403,6 @@ import { SITE_TITLE } from '../../consts';
 				resetBtn.addEventListener('click', resetGame);
 				restartBtn.addEventListener('click', () => { resetGame(); startGame(); });
 
-				// Initial draw
 				board = createBoard();
 				drawBoard();
 				drawNext();
