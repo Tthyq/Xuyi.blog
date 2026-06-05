@@ -4,14 +4,12 @@ import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import ParticleBackground from '../../components/ParticleBackground.astro';
 import { SITE_TITLE } from '../../consts';
-import { ClientRouter } from 'astro:transitions';
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={'翻牌配对 · ' + SITE_TITLE} description="记忆力翻牌配对游戏" />
-		<ClientRouter />
 		<style>
 			.game-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1.5em; }
 			.game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; }
@@ -26,12 +24,12 @@ import { ClientRouter } from 'astro:transitions';
 			.diff-btn { padding: 0.4em 1em; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
 			.diff-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 			.board { display: grid; gap: 8px; padding: 10px; background: rgba(37,99,235,0.05); border-radius: 12px; }
-			.card { perspective: 800px; cursor: pointer; }
+			.card { perspective: 800px; cursor: pointer; position: relative; overflow: hidden; }
 			.card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.5s ease; }
 			.card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
 			.card-face { position: absolute; inset: 0; border-radius: 8px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-			.card-front { background: var(--accent); color: #fff; font-size: 1.5rem; font-weight: 700; }
-			.card-back { background: var(--bg-card); border: 2px solid var(--border-color); transform: rotateY(180deg); font-size: 2rem; }
+			.card-front { background: var(--accent); color: #fff; font-size: 1.5rem; font-weight: 700; z-index: 2; }
+			.card-back { background: var(--bg-card); border: 2px solid var(--border-color); transform: rotateY(180deg); font-size: 2rem; z-index: 1; }
 			.card.matched .card-back { border-color: #22c55e; background: rgba(34,197,94,0.1); }
 			.card.matched { pointer-events: none; }
 			.card.flipped { pointer-events: none; }
@@ -141,10 +139,10 @@ import { ClientRouter } from 'astro:transitions';
 					boardEl.style.gridAutoRows = `${cellSize}px`;
 
 					boardEl.innerHTML = cards.map((emoji, i) => `
-						<div class="card" data-index="${i}" data-emoji="${emoji}" style="height:${cellSize}px">
-							<div class="card-inner">
-								<div class="card-face card-front">?</div>
-								<div class="card-face card-back">${emoji}</div>
+						<div class="card" data-index="${i}" data-emoji="${emoji}" style="height:${cellSize}px;perspective:800px;cursor:pointer;position:relative;overflow:hidden">
+							<div class="card-inner" style="position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.5s ease">
+								<div class="card-face card-front" style="position:absolute;inset:0;border-radius:8px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--accent);color:#fff;font-size:1.5rem;font-weight:700;z-index:2">?</div>
+								<div class="card-face card-back" style="position:absolute;inset:0;border-radius:8px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--bg-card);border:2px solid var(--border-color);transform:rotateY(180deg);font-size:2rem;z-index:1">${emoji}</div>
 							</div>
 						</div>
 					`).join('');
@@ -167,6 +165,7 @@ import { ClientRouter } from 'astro:transitions';
 					}
 
 					card.classList.add('flipped');
+					card.querySelector('.card-inner').style.transform = 'rotateY(180deg)';
 					flippedCards.push(card);
 
 					if (flippedCards.length === 2) {
@@ -185,6 +184,15 @@ import { ClientRouter } from 'astro:transitions';
 							b.classList.add('matched');
 							a.classList.remove('flipped');
 							b.classList.remove('flipped');
+							// Keep flipped and add green border on back
+							const backA = a.querySelector('.card-back');
+							const backB = b.querySelector('.card-back');
+							backA.style.borderColor = '#22c55e';
+							backA.style.background = 'rgba(34,197,94,0.1)';
+							backB.style.borderColor = '#22c55e';
+							backB.style.background = 'rgba(34,197,94,0.1)';
+							a.style.pointerEvents = 'none';
+							b.style.pointerEvents = 'none';
 							matchedCount++;
 							pairsEl.textContent = `${matchedCount}/${totalPairs}`;
 							flippedCards = [];
@@ -200,6 +208,8 @@ import { ClientRouter } from 'astro:transitions';
 						setTimeout(() => {
 							a.classList.remove('flipped');
 							b.classList.remove('flipped');
+							a.querySelector('.card-inner').style.transform = '';
+							b.querySelector('.card-inner').style.transform = '';
 							flippedCards = [];
 							locked = false;
 						}, 800);
