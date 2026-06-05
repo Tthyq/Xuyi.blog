@@ -15,7 +15,7 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 
 <html lang="zh-CN">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} type="article" pubDate={pubDate} updatedDate={updatedDate} />
 		<ClientRouter />
 		<style>
 			main {
@@ -60,11 +60,14 @@ const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.prop
 				justify-content: center;
 			}
 			.tag {
-				background: rgb(var(--gray-light));
-				color: rgb(var(--gray-dark));
+				background: rgba(37, 99, 235, 0.08);
+				color: var(--accent);
 				padding: 0.2rem 0.8rem;
 				border-radius: 4px;
 				font-size: 0.85rem;
+			}
+			[data-theme="dark"] .tag {
+				background: rgba(96, 165, 250, 0.15);
 			}
 		</style>
 	</head>

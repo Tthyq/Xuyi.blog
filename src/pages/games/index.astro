@@ -4,12 +4,14 @@ import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import ParticleBackground from '../../components/ParticleBackground.astro';
 import { SITE_TITLE } from '../../consts';
+import { ClientRouter } from 'astro:transitions';
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={'游乐场 · ' + SITE_TITLE} description="浏览器小游戏与交互玩具" />
+		<ClientRouter />
 		<style>
 			.game-grid {
 				display: grid;

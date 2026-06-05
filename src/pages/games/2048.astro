@@ -4,12 +4,14 @@ import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import ParticleBackground from '../../components/ParticleBackground.astro';
 import { SITE_TITLE } from '../../consts';
+import { ClientRouter } from 'astro:transitions';
 ---
 
 <!doctype html>
 <html lang="zh-CN">
 	<head>
 		<BaseHead title={'2048 · ' + SITE_TITLE} description="经典 2048 数字游戏" />
+		<ClientRouter />
 		<style>
 			.game-wrapper { display: flex; flex-direction: column; align-items: center; gap: 1.5em; }
 			.game-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; }
