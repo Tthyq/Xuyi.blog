@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#112d2b"><meta name="description" content="拖动关节，理解机器人。坐标变换、改进D-H、正逆运动学的交互学习实验室，附详细讲解、33道练习和闭卷模拟。"><title>ROBO LAB · 机器人学学习实验室</title><link rel="stylesheet" href="style.css"><style>.blog-return{display:block;font-size:11px;color:#708168;margin:25px 15px -28px}.blog-return:hover{color:#264b34}</style></head>
+<body>
+<aside class="sidebar">
+ <a class="brand" href="#home"><span class="brand-symbol">R<span>·</span></span><span>ROBO LAB<small>机器人学学习实验室</small></span></a>
+ <a class="blog-return" href="/learn/">← 返回学习空间</a><div class="nav-label">学习工作台</div>
+ <nav aria-label="主导航">
+  <a href="#home" data-nav="home"><span class="nav-icon">⌂</span>学习总览</a>
+  <a href="#lab" data-nav="lab"><span class="nav-icon">⌘</span>交互实验室<span class="nav-tag">4</span></a>
+  <a href="#lessons" data-nav="lessons"><span class="nav-icon">▤</span>知识讲解</a>
+  <a href="#practice" data-nav="practice"><span class="nav-icon">✎</span>练习与错题</a>
+  <a href="#exam" data-nav="exam"><span class="nav-icon">◷</span>闭卷模拟</a>
+ </nav>
+ <div class="sidebar-bottom"><div class="little-orbit"></div><strong>理解，比记住更进一步。</strong><p>从坐标系开始<br>把公式变成看得见的运动。</p><a class="download" href="机器人学期末复习册.docx" download>下载 Word 复习册 <span>↗</span></a><small>学习记录保存在当前浏览器</small></div>
+</aside>
+<div class="mobile-bar"><a href="/learn/">← 学习空间 · ROBO LAB</a><button id="menu-toggle" aria-label="展开导航">☰</button></div>
+<main><header class="topbar"><div id="breadcrumb">工作台 <span>/</span> 学习总览</div><div class="topbar-right"><span class="status-dot"></span>从零开始，也来得及 <span class="avatar">学</span></div></header><div id="app"></div><footer>ROBO LAB <span>以列向量、右手系与改进 D-H 为统一约定</span><a href="#lessons">课程说明 ↗</a></footer></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="content.js"></script><script src="arm-model.js"></script><script src="arm-lab.js"></script><script src="app.js"></script>
+</body></html>

@@ -1,0 +1,11 @@
+import {cpSync,mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {resolve} from 'node:path';
+const source=resolve(process.argv[2]||'../robotics-lab/dist');
+if(!existsSync(resolve(source,'arm-model.js')))throw new Error('需要已构建的机器人学实验室目录，作为脚本参数传入。');
+const target=resolve('public/learn/robotics');mkdirSync(target,{recursive:true});cpSync(source,target,{recursive:true});
+let html=readFileSync(resolve(target,'index.html'),'utf8');
+html=html.replace('<div class="nav-label">学习工作台</div>','<a class="blog-return" href="/learn/">← 返回学习空间</a><div class="nav-label">学习工作台</div>');
+html=html.replace('<a href="#home">R · ROBO LAB</a>','<a href="/learn/">← 学习空间 · ROBO LAB</a>');
+html=html.replace('<link rel="stylesheet" href="style.css">','<link rel="stylesheet" href="style.css"><style>.blog-return{display:block;font-size:11px;color:#708168;margin:25px 15px -28px}.blog-return:hover{color:#264b34}</style>');
+writeFileSync(resolve(target,'index.html'),html);
+console.log('机器人学实验室已同步到 public/learn/robotics（含 1～8 节连杆功能）。');

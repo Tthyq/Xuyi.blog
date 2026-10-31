@@ -1,147 +1,55 @@
-# 数字花园 | 沉淀与折腾
+# 煦意 · 数字花园
 
-关于代码逻辑、硬件设计以及理性与感性的文字记录。
+基于原 Astro 博客重整：首页聚焦学习与实验，全部旧文收录于“往日手记”，学习栏目内置机器人学实验室。
 
-基于 [Astro](https://astro.build) 构建。
+## 开发与构建
 
-## 本地开发
+需要 Node.js >= 22.12.0。
 
-```bash
-npm install
-npm run dev        # 启动开发服务器，默认 http://localhost:4321
-npm run build      # 构建生产版本到 ./dist/
-npm run preview    # 本地预览构建产物
+```sh
+npm ci
+npm run dev
+npm run build
+npm run preview
 ```
 
-## 项目结构
+生产文件输出到 `dist/`，可以继续通过原来的 GitHub Pages 或 Vercel 流程发布。`astro.config.mjs` 与 `public/CNAME` 保留原域名 `tthyq.ccwu.cc`。
 
-```
-src/
-├── assets/                 # 图片资源
-├── components/             # UI 组件
-│   ├── BaseHead.astro      # 全局 head 元信息 + 彩蛋脚本
-│   ├── Footer.astro
-│   ├── FormattedDate.astro
-│   ├── Header.astro        # 导航栏
-│   └── ParticleBackground.astro  # Canvas 粒子背景
-├── content/                # 博客文章
-├── layouts/                # 页面布局
-│   ├── BlogPost.astro      # 博客文章布局
-│   └── Layout.astro        # 通用布局
-├── pages/                  # 路由页面
-│   ├── index.astro         # 首页（门户）
-│   ├── about.astro         # 关于
-│   ├── blog/               # 博客列表 + 文章
-│   ├── ai.astro            # AI 实验室（多模型对话 UI）
-│   └── games/              # 游戏矩阵
-│       ├── index.astro     # 游戏大厅
-│       ├── snake.astro     # 贪吃蛇（含加速机制）
-│       ├── tetris.astro    # 俄罗斯方块
-│       └── minesweeper.astro  # 扫雷（三档难度）
-└── styles/
-    └── global.css          # 全局样式
+## 栏目与内容
+
+- `/`：新版数字花园首页，不展示旧文列表。
+- `/columns/old-notes/`：“往日手记”专栏，16篇文章，按年份整理，支持关键词与标签筛选。
+- `/blog/`：跳转到旧文专栏；原 `/blog/<slug>/` 文章地址继续有效。
+- `/learn/`：学习空间与课程入口。
+- `/learn/robotics/`：完整机器人学实验室，支持1～8节机械臂、16节讲解、33道计算练习、20道概念自测、错题本与模拟考试。
+- 原有关于、游戏、AI页面和留言墙保留，可由导航或页脚进入。
+
+旧文章仍保存在 `src/content/blog/`，正文与原文件一致；“收起来”通过栏目与首页展示结构实现，无需移动或重写正文。
+
+## 维护实验室
+
+实验室静态源码已随博客放在 `public/learn/robotics/`，可直接独立使用，不依赖外站 iframe。
+
+如需从独立实验室项目同步更新，在博客项目根目录运行：
+
+```sh
+node scripts/sync-robotics.mjs ../robotics-lab/dist
 ```
 
-## 功能特性
+也可以传入其他已构建的实验室目录绝对路径。同步脚本会补上“返回学习空间”入口。各学习记录保存在浏览器，站点域名变化时不会自动迁移。
 
-- **粒子背景** — Canvas 自绘粒子系统，鼠标悬停产生排斥效果
-- **版面彩蛋** — 按下 `0` `1` 翻转反色；控制台输出艺术字问候
-- **AI 实验室** — 五个模型页签切换，消息对话 UI，模拟思考延迟
-- **游戏矩阵** — 贪吃蛇（含速度递增）、俄罗斯方块、扫雷（初级/中级/高级）
+## 检查
 
-## 部署指南
+`python scripts/verify_site.py` 检查产物内的站内链接、16篇文章页面与实验室资源；传入原项目路径可额外比较旧文文件哈希。
 
-### 方案一：Vercel（推荐）
+正式网站：https://tthyq.ccwu.cc/ 。main 分支推送后，Vercel 自动构建并更新生产站点；原 GitHub Pages 工作流同时保留。
 
-1. **推送到 GitHub**
+## 游乐场与留言墙
 
-```bash
-cd tthyq.blog
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/Tthyq/Xuyi.blog.git
-git push -u origin main
-```
+游乐场共18款游戏：保留原6款，新增井字棋、四子棋、熄灯谜题、十五数码、迷宫、打地鼠、打砖块、乒乓对决、纸飞机、瞄准练习、打字小憩、迷你数独。
 
-2. **在 Vercel 面板配置**
+新游戏复用 src/scripts/arcade.js 和 game-math.js，验证命令为 node scripts/check_games.mjs。
 
-| 配置项 | 值 |
-|--------|-----|
-| Framework Preset | Astro |
-| Build Command | `npm run build` |
-| Output Directory | `dist` |
-| Install Command | `npm install` |
+留言墙恢复至主导航，继续使用原 Giscus 仓库与讨论分类，不保存本地假留言。需要 GitHub 登录才能发布评论。
 
-3. **连接 GitHub 仓库**
-
-登录 [vercel.com](https://vercel.com) → New Project → Import Git Repository → 选择 `tthyq.blog` → Deploy
-
-### 方案二：GitHub Pages
-
-1. **安装适配器**
-
-```bash
-npm install @astrojs/node
-```
-
-2. **修改 astro.config.mjs**
-
-```js
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  site: 'https://YOUR_USERNAME.github.io',
-  output: 'static',
-});
-```
-
-3. **创建 GitHub Actions 工作流**
-
-在项目根目录创建 `.github/workflows/deploy.yml`：
-
-```yaml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [ main ]
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/deploy-pages@v4
-        id: deployment
-```
-
-4. **在 GitHub 仓库设置中启用 Pages**
-
-Settings → Pages → Source → 选择 "GitHub Actions"
-
-## 技术栈
-
-- **Astro** — 静态站点生成
-- **Markdown / MDX** — 内容管理
-- **Canvas API** — 粒子背景与游戏渲染
-- **Vercel** — 部署托管
+本次补入2026年4月2日的《游戏杂谈》与2026年9月30日的随笔，后者附3幅原创SVG线稿，前者保留PDF中的7张插图。

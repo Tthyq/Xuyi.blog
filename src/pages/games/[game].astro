@@ -1,0 +1,8 @@
+---
+import GardenLayout from '../../layouts/GardenLayout.astro';
+import {games} from '../../data/games';
+export function getStaticPaths(){return games.filter(g=>!g.legacy).map(game=>({params:{game:game.id},props:{game}}))}
+const {game}=Astro.props;
+---
+<GardenLayout title={`${game.name} · 游乐场 · 煦意`} description={game.description}><link rel="stylesheet" href="/play/arcade.css"/><div id="top"></div><section class="page-heading"><a data-astro-reload href="/games/" class="back-link">← 返回游乐场</a><div class="eyebrow">A LITTLE BREAK / {game.category}</div><h1>{game.name}</h1><p>{game.description}</p></section><section id="arcade" data-game={game.id} aria-label={game.name}><div class="arcade-toolbar"><span id="play-status" role="status" aria-live="polite">准备开始</span><div><button id="play-start" class="garden-button" type="button">开始游戏</button><button id="play-reset" class="garden-button secondary" type="button">新一局</button></div></div><div class="arcade-score"><span id="play-score">0</span><span id="play-extra"></span></div><div id="play-stage" tabindex="0" aria-label="游戏操作区域"></div><div id="play-controls"></div><p id="play-help" class="reading-hint"></p></section><div class="learning-tools"><a data-astro-reload class="quiet-link" href="/games/">换一个游戏 →</a><a data-astro-reload class="quiet-link" href="/learn/">回学习空间 →</a></div></GardenLayout>
+<script src="../../scripts/arcade.js"></script>

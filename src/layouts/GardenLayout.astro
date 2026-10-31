@@ -1,0 +1,11 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/garden.css';
+import { ClientRouter } from 'astro:transitions';
+import type {ImageMetadata} from 'astro';
+interface Props { title: string; description?: string; image?: ImageMetadata; type?: 'website'|'article'; pubDate?: Date; updatedDate?: Date; }
+const {title,description='在这里学习、实验，也把走过的日子好好收藏。',...metadata}=Astro.props;
+---
+<!doctype html><html lang="zh-CN"><head><BaseHead title={title} description={description} {...metadata}/><ClientRouter/></head><body class="garden-body"><Header/><main class="garden-main"><slot/></main><Footer/></body></html>

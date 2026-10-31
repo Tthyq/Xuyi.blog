@@ -7,7 +7,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://tthyq.ccwu.cc',
-	integrations: [mdx(), sitemap()],
+	integrations: [mdx(), sitemap({ customPages: ['https://tthyq.ccwu.cc/learn/robotics/'] })],
 	fonts: [
 		{
 			provider: fontProviders.local(),
