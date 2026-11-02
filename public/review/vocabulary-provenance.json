@@ -1,0 +1,9 @@
+{
+  "source": "ECDICT · ky 考研标签",
+  "license": "MIT",
+  "revision": "39cfb9672c0906b63569e0453c2e6abfb9ab182a",
+  "sourceUrl": "https://github.com/skywind3000/ECDICT/tree/39cfb9672c0906b63569e0453c2e6abfb9ab182a",
+  "count": 4801,
+  "note": "按开源词典的考研标签整理，非某一年度官方大纲；默认按语料词频顺序安排新词。",
+  "csvSha256": "d1ecbdf9ee2b920afb6f430ca6b6bb9f559588cf0dff86e04bd255f9390843cc"
+}

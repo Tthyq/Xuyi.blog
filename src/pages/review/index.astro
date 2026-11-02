@@ -1,0 +1,7 @@
+---
+import GardenLayout from '../../layouts/GardenLayout.astro';
+import {readFileSync} from 'node:fs';
+const vocabulary=JSON.parse(readFileSync(new URL('../../../public/review/vocabulary-provenance.json',import.meta.url),'utf-8'));
+---
+<GardenLayout title="每日温习 · 煦意" description="机器人学概念、考研词汇与名言摘录。每天翻几张卡片，给记忆浇一点水。"><link rel="stylesheet" href="/review/review.css"/><div id="top"></div><section class="page-heading review-heading"><div><div class="eyebrow">A LITTLE EVERY DAY / DAILY REVIEW</div><h1>让记住的，<br/>慢慢变成自己的。</h1><p>先回忆，再翻卡。每天温习一点，知识就会扎根深一点。</p></div><div class="review-seal" aria-hidden="true">温<br/>故</div></section><section id="review-app" data-vocabulary-count={vocabulary.count} aria-label="每日温习"><p class="reading-hint" role="status">正在准备温习卡片…</p></section><noscript><p class="reading-hint">翻卡、打卡与学习记录需要启用 JavaScript。</p></noscript></GardenLayout>
+<script src="../../scripts/review-app.js"></script>

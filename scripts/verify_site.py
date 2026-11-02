@@ -1,7 +1,7 @@
 from pathlib import Path
 from html.parser import HTMLParser
 from urllib.parse import urlsplit,unquote
-import hashlib,sys
+import hashlib,sys,json
 ROOT=Path(__file__).resolve().parent.parent
 DIST=ROOT/'dist'
 class Links(HTMLParser):
@@ -22,6 +22,10 @@ posts=list((ROOT/'src/content/blog').glob('*.md'))
 assert len(posts)==16
 assert len(list((DIST/'blog').glob('*/index.html')))==len(posts)
 assert len(list((DIST/'games').glob('*/index.html')))==18
+for name in ['index.html','review.css','vocabulary.json','vocabulary-provenance.json','ECDICT-LICENSE.txt']:
+    assert (DIST/'review'/name).exists(),name
+vocabulary=json.loads((DIST/'review/vocabulary.json').read_text(encoding='utf-8'))
+assert len(vocabulary['cards'])==vocabulary['count']==4801
 for name in ['index.html','app.js','arm-model.js','arm-lab.js','content.js','style.css','机器人学期末复习册.docx']:
     assert (DIST/'learn/robotics'/name).exists(),name
 if len(sys.argv)>1:
