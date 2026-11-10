@@ -26,6 +26,11 @@ for name in ['index.html','review.css','vocabulary.json','vocabulary-provenance.
     assert (DIST/'review'/name).exists(),name
 vocabulary=json.loads((DIST/'review/vocabulary.json').read_text(encoding='utf-8'))
 assert len(vocabulary['cards'])==vocabulary['count']==4801
+assert (DIST/'practice/index.html').exists()
+for course,count in [('maogai',780),('metal',414)]:
+    bank=json.loads((DIST/'practice'/f'{course}.json').read_text(encoding='utf-8'))
+    assert bank['count']==len(bank['questions'])==count
+for n in range(1,35):assert (DIST/'practice/figures'/f'fig-{n:02}.png').exists()
 for name in ['index.html','app.js','arm-model.js','arm-lab.js','content.js','style.css','机器人学期末复习册.docx']:
     assert (DIST/'learn/robotics'/name).exists(),name
 if len(sys.argv)>1:

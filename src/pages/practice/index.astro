@@ -1,0 +1,11 @@
+---
+import GardenLayout from '../../layouts/GardenLayout.astro';
+---
+<GardenLayout title="课程题库 · 煦意" description="毛概与金工实习独立题库，支持顺序练习、自选组卷、解析和错题重练。">
+ <link rel="stylesheet" href="/practice/bank.css"/>
+ <div id="top"></div>
+ <section class="page-heading bank-heading"><div><div class="eyebrow">PRACTICE / UNDERSTAND / REMEMBER</div><h1>把会做的，<br/>变成真正掌握的。</h1><p>两门课程，各自积累。顺着题库慢慢练，也可以给自己组一张试卷。</p></div><a class="quiet-link" href="/learn/">返回学习空间 ↗</a></section>
+ <section id="bank-app" aria-label="课程题库"><p role="status">正在准备题库…</p></section>
+ <noscript><p>刷题、评分和错题记录需要启用 JavaScript。</p></noscript>
+</GardenLayout>
+<script src="../../scripts/bank-app.js"></script>

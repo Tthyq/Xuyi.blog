@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {eligible,sameAnswer,composePaper,emptyBankState,normalizeBankState,recordAnswer,submitPaper,mergeBankStates,filterQuestions,reconcileBankRevision} from '../src/scripts/bank-core.js';
+const banks=['maogai','metal'].map(c=>JSON.parse(readFileSync(new URL(`../public/practice/${c}.json`,import.meta.url),'utf8')));
+assert.equal(banks[0].questions.length,780);assert.equal(banks[1].questions.length,414);
+for(const b of banks){assert.equal(b.count,b.questions.length);const ids=new Set();for(const q of b.questions){assert(!ids.has(q.id));ids.add(q.id);assert(q.stem.trim()&&q.topic&&q.source);assert(q.options.length>=2&&q.options.length<=6);assert(q.options.every(x=>typeof x==='string'&&x.trim()));assert(q.explanation.length>=40,`${q.id} explanation too short`);if(!eligible(q)){assert(q.ungraded&&q.answer===null);continue}assert(q.answer.every(n=>Number.isInteger(n)&&n>=0&&n<q.options.length));assert(new Set(q.answer).size===q.answer.length);assert(q.type==='multiple'?q.answer.length>=1:q.answer.length===1)}}
+assert(sameAnswer([2,0],[0,2]));assert(!sameAnswer([0],[0,2]));assert(!sameAnswer([0,0],[0,2]));
+const bank=banks[0].questions,state=emptyBankState(),now=Date.parse('2026-11-10T04:00:00Z');
+const paper=composePaper(bank,{counts:{single:4,multiple:3,judge:2},minutes:30},now);assert.equal(paper.ids.length,9);assert.equal(new Set(paper.ids).size,9);assert.equal(paper.deadline,now+1800000);assert(paper.ids.every(id=>eligible(bank.find(q=>q.id===id))));
+assert.throws(()=>composePaper(bank,{counts:{single:0,multiple:0,judge:0},minutes:0}));assert.throws(()=>composePaper(bank,{topics:['not-a-topic'],counts:{single:1},minutes:0}));assert.throws(()=>composePaper(bank,{counts:{single:1.5},minutes:30}));
+const first=bank.find(q=>q.id===paper.ids[0]);paper.answers[first.id]=[...first.answer];state.exams.maogai=paper;
+const result=submitPaper(state,'maogai',bank,now+100);assert.equal(result.correct,1);assert.equal(result.unanswered,8);assert.equal(result.total,9);assert.equal(state.history.length,1);assert.equal(Object.values(state.records).filter(r=>r.wrong).length,8);submitPaper(state,'maogai',bank,now+200);assert.equal(state.history.length,1);assert.equal(state.records[first.id].attempts,1,'Submitting twice must be idempotent');
+const wrong=bank.find(q=>state.records[q.id]?.wrong);recordAnswer(state,wrong,wrong.answer,now+300);assert(!state.records[wrong.id].wrong);assert.equal(state.records[wrong.id].attempts,2);
+assert.deepEqual(JSON.parse(JSON.stringify(normalizeBankState(state))),JSON.parse(JSON.stringify(state)));
+const incoming=emptyBankState();recordAnswer(incoming,first,[],now+400);const merged=mergeBankStates(state,incoming);assert(merged.records[first.id].wrong);assert.equal(merged.history.length,1);assert.equal(mergeBankStates(merged,merged).history.length,1);
+assert.throws(()=>normalizeBankState({version:2,records:{}}));assert.throws(()=>normalizeBankState({version:1,records:{'__proto__evil':{}}}));const malformed=JSON.parse(JSON.stringify(state));malformed.exams.maogai.ids.push(malformed.exams.maogai.ids[0]);assert.throws(()=>normalizeBankState(malformed));
+assert.equal(filterQuestions(bank,{query:'毛泽东'}).every(q=>[q.stem,q.topic,...q.options].join(' ').includes('毛泽东')),true);
+const scoped=composePaper(bank,{topics:[bank[0].topic],counts:{single:1},minutes:0});assert.equal(scoped.deadline,null);assert(scoped.ids.every(id=>bank.find(q=>q.id===id).topic===bank[0].topic));
+console.log('Passed: 1,194 complete questions, answer indices and explanations, strict multi-select grading, scoped unique papers, timer deadlines, unanswered/wrong collection, retry recovery, idempotent submission, backup round trip and hostile import rejection.');
+
+const metal=banks[1];assert.equal(metal.questions.filter(q=>q.edition==='expanded').length,390);assert.equal(metal.questions.filter(q=>q.edition==='legacy-supplement').length,24);assert.equal(metal.questions.filter(q=>q.ungraded).length,20);
+for(let n=1;n<=285;n++)assert(metal.questions.some(q=>q.id==='metal:'+String(n).padStart(3,'0')),'Original progress ID retained');
+for(let n=1;n<=34;n++)assert(readFileSync(new URL('../public/practice/figures/fig-'+String(n).padStart(2,'0')+'.png',import.meta.url)).length>100);
+for(const q of metal.questions)for(const f of q.figures||[])assert(Number.isInteger(f.number)&&f.number>=1&&f.number<=34);
+const migration=emptyBankState();migration.records['metal:036']={selected:[1],at:now,wrong:false,attempts:2};migration.exams.metal={ids:['metal:036'],answers:{'metal:036':[1]},started:now,deadline:null,submitted:false,finished:null};assert(reconcileBankRevision(migration,metal));assert.deepEqual(migration.records['metal:036'].selected,[2]);assert.deepEqual(migration.exams.metal.answers['metal:036'],[2]);assert.equal(migration.records['metal:036'].attempts,2);assert(!reconcileBankRevision(migration,metal));assert.deepEqual(migration.records['metal:036'].selected,[2]);assert.equal(normalizeBankState(migration).revisions.metal,metal.revision);
+const corrections=emptyBankState();corrections.records['metal:114']={selected:[0],at:now,wrong:false,attempts:1};reconcileBankRevision(corrections,metal);assert(corrections.records['metal:114'].wrong,'Previously guessed answer is rechecked against the supplied diagram');
+console.log('Passed: 390 supplied key entries, 24 old supplements, all 285 old IDs, 34 figure assets, one-time option remapping and revised-answer reconciliation.');
